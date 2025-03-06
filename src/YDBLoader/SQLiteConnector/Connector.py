@@ -1,13 +1,16 @@
 import sqlite3
+import os
 
 class Connector:
 
     def __init__(self, file_path=None):
-        self.__file_path = file_path
+        self.set_db_file(file_path)
         self.connection = None
         self.cursor = None
         
     def set_db_file(self, file_path):
+        if file_path != None and not os.path.exists(file_path):
+            raise AttributeError("The file_path is not existed, please check your file path. ")
         self.__file_path = file_path
 
     def connect(self):
@@ -21,7 +24,7 @@ class Connector:
             self.cursor = self.connection.cursor()
         except sqlite3.Error as e:
             print(f"连接数据库时出错: {e}")
-
+       
     def extract_table(self, table_name):
         """
         从指定的表中提取数据

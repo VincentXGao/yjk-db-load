@@ -9,7 +9,7 @@ setup(
     long_description=open('README.md').read(),  # 包的详细描述
     long_description_content_type='text/markdown',  # 详细描述的内容类型
     url='https://github.com/VincentXGao/yjk-db-load',  # 项目的 URL
-    packages=find_packages(),  # 自动发现并包含所有的包
+    packages=['src.YDBLoader'],  # 自动发现并包含所有的包
     classifiers=[
         'Programming Language :: Python :: 3',
         'License :: OSI Approved :: MIT License',
