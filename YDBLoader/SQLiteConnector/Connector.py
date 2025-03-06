@@ -1,3 +1,4 @@
+from typing import List
 import sqlite3
 import os
 
@@ -35,6 +36,24 @@ class Connector:
             self.connect()
         try:
             self.cursor.execute(f"SELECT * FROM {table_name}")
+            rows = self.cursor.fetchall()
+            return rows
+        except sqlite3.Error as e:
+            print(f"从表 {table_name} 提取数据时出错: {e}")
+            return []
+
+    def extract_table_by_columns(self, table_name, column_list:List[str]):
+        """
+        从指定的表中提取数据
+        :param table_name: 要提取数据的表名
+        :param column_list: 要提取的列名集合
+        :return: 表中的数据列表
+        """
+        if self.cursor is None:
+            self.connect()
+        try:
+            column_list_sql = ",".join(column_list)
+            self.cursor.execute(f"SELECT {column_list_sql} FROM {table_name}")
             rows = self.cursor.fetchall()
             return rows
         except sqlite3.Error as e:

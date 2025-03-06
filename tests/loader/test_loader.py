@@ -29,5 +29,6 @@ class TestYDBLoader(unittest.TestCase):
 
     def test_add3(self):
         loader = YDBLoader()
+        
         result = loader.sum(2, 3)
         assert result == 5
