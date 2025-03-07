@@ -15,5 +15,9 @@ setup(
         'License :: OSI Approved :: MIT License',
         'Operating System :: OS Independent',
     ],  # 包的分类信息
+    install_requires = [
+        "numpy>=2.0",
+        "python-docx>=1.0"
+    ], # 依赖的库及其最低版本
     python_requires='>=3.6',  # 所需的 Python 版本
 )
