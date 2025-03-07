@@ -35,7 +35,6 @@ class YDBLoader:
             columns.append(new_column)
         return columns
 
-
     def __get_sections(self,comp_type:ComponentType):
         table_name = ""
         table_columns = []
@@ -95,6 +94,8 @@ class YDBLoader:
                                   )
             periods.append(period)
         return Period(periods)
+
+
 
 if __name__ == "__main__":
     file_path = "testfiles/dtlmodel1.ydb"
