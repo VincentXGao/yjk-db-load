@@ -17,19 +17,19 @@ class Section:
     def __str__(self):
         '''todo:这里需要完善str方法'''
         display_function = {
-            ShapeEnum.Rect:lambda self:f"Rect-{self.b}mmx{self.h}mm",
-            ShapeEnum.HShape:lambda self:f"{self.b}",
-            ShapeEnum.Circle:lambda self:f"Circle-Diameter:{self.b}mm",
-            ShapeEnum.RegularPolygon:lambda self:f"{self.b}",
-            ShapeEnum.Groove:lambda self:f"{self.b}",
-            ShapeEnum.Cross:lambda self:f"{self.b}",
-            ShapeEnum.Box:lambda self:f"{self.b}",
-            ShapeEnum.CircleTube:lambda self:f"{self.b}",
-            ShapeEnum.CircleCFT:lambda self:f"{self.b}",
-            ShapeEnum.HSRC:lambda self:f"{self.b}",
-            ShapeEnum.BoxSRC:lambda self:f"{self.b}",
+            ShapeEnum.Rect : lambda : f"Rect-{self.b}mmx{self.h}mm",
+            ShapeEnum.HShape : lambda : f"{self.b}",
+            ShapeEnum.Circle : lambda : f"Circle-Diameter:{self.b}mm",
+            ShapeEnum.RegularPolygon : lambda : f"{self.b}",
+            ShapeEnum.Groove : lambda  : f"{self.b}",
+            ShapeEnum.Cross : lambda : f"{self.b}",
+            ShapeEnum.Box : lambda : f"{self.b}",
+            ShapeEnum.CircleTube : lambda : f"{self.b}",
+            ShapeEnum.CircleCFT : lambda : f"{self.b}",
+            ShapeEnum.HSRC : lambda : f"{self.b}",
+            ShapeEnum.BoxSRC : lambda : f"{self.b}",
         }
-        return display_function[self.k](self)
+        return display_function[self.k]()
     
 
 if __name__ == "__main__":

@@ -27,7 +27,7 @@ class SinglePeriod:
         self.mass_participate_z = mass_particpate_z
         
     def __str__(self):
-        return f"T{self.index}:\t{self.time:.4f}s\t[X:{self.coeff_x*100:.1f}%;\tY:{self.coeff_y*100:.1f};\tZ:{self.coeff_z*100:.1f}]"  
+        return f"T{self.index}:\t{self.time:.4f}s\t[X:{self.coeff_x*100:.1f}%;\tY:{self.coeff_y*100:.1f}%;\tZ:{self.coeff_z*100:.1f}%]"  
     
     
     
