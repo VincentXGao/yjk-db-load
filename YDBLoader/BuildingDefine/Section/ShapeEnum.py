@@ -24,5 +24,12 @@ class ShapeEnum(Enum):
     # 箱型劲
     BoxSRC = 14
     
+    @classmethod
+    def ConvertToShapeEnum(cls,index:int):
+        try: 
+            return (ShapeEnum)(index)
+        except ValueError:
+            raise ValueError(f"Shape kind ${index} is not supported yet.")
+    
     
     

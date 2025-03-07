@@ -19,3 +19,6 @@ class YDBTableName():
     COLUMN_TABLE_USEFUL_COLUMNS = [ID,JOINT_ID,SECTION_ID,ECC_X,ECC_Y,ROTATION]
 
 
+    RESULT_PERIOD_TABLE = "calEigenInf"
+    RESULT_PERIOD_USEFUL_COLUMNS = ["ModuleID","EigenNo","Period","Angle","CoeffInf","mInf"]
+

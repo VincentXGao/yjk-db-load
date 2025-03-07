@@ -15,9 +15,19 @@ class Section:
         
 
     def __str__(self):
+        '''todo:这里需要完善str方法'''
         display_function = {
             ShapeEnum.Rect:lambda self:f"Rect-{self.b}mmx{self.h}mm",
-            ShapeEnum.Circle:lambda self:f"Circle-Diameter:{self.b}mm"
+            ShapeEnum.HShape:lambda self:f"{self.b}",
+            ShapeEnum.Circle:lambda self:f"Circle-Diameter:{self.b}mm",
+            ShapeEnum.RegularPolygon:lambda self:f"{self.b}",
+            ShapeEnum.Groove:lambda self:f"{self.b}",
+            ShapeEnum.Cross:lambda self:f"{self.b}",
+            ShapeEnum.Box:lambda self:f"{self.b}",
+            ShapeEnum.CircleTube:lambda self:f"{self.b}",
+            ShapeEnum.CircleCFT:lambda self:f"{self.b}",
+            ShapeEnum.HSRC:lambda self:f"{self.b}",
+            ShapeEnum.BoxSRC:lambda self:f"{self.b}",
         }
         return display_function[self.k](self)
     

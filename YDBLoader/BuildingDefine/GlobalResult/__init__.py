@@ -1,0 +1,1 @@
+from .SeismicResult import SinglePeriod, Period

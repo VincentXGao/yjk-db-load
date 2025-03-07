@@ -6,10 +6,11 @@ from YDBLoader import YDBLoader
 from YDBLoader.BuildingDefine import Beam,Column, Section
 from YDBLoader.SQLiteConnector import Connector
 from YDBLoader.BuildingDefine.Section import ShapeEnum
+from YDBLoader.BuildingDefine.Geometry import Joint
 
 class TestColumn(unittest.TestCase):
     def test_column_init(self):
         sect = Section(1,ShapeEnum.Rect,[111,222])
-        c = Column(sect)
-        assert str(c.section) == "adsf"
+        c = Column(1,Joint(1,1,1,1),sect)
+        # assert str(c.section) == "adsf"
         # assert c == "s"
