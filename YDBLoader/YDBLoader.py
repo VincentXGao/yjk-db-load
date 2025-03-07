@@ -24,12 +24,12 @@ class YDBLoader:
         sections = self.__get_sections(ComponentType.Column)
         row_data = self.connector.extract_table_by_columns(YDBTableName.COLUMN_TABLE_NAME,YDBTableName.COLUMN_TABLE_USEFUL_COLUMNS)
         for temp_column in row_data:
-            id = RowDataFactory.Extract_int(temp_column,0)
+            temp_col_id = RowDataFactory.Extract_int(temp_column,0)
             joint_id = RowDataFactory.Extract_int(temp_column,1)
             sect_id = RowDataFactory.Extract_int(temp_column,2)
             joint = [i for i in joints if i.id == joint_id][0]
             sect = [s for s in sections if s.id == sect_id][0]
-            new_column = Column(id,joint,sect)
+            new_column = Column(temp_col_id,joint,sect)
             columns.append(new_column)
         return columns
 
@@ -44,11 +44,12 @@ class YDBLoader:
         row_data = self.connector.extract_table_by_columns(table_name,table_columns)
         sections = []
         for temp_section in row_data:
-            id = RowDataFactory.Extract_int(temp_section,0)
+            temp_section_id = RowDataFactory.Extract_int(temp_section,0)
+            # 这里的mat暂时没用到
             mat = RowDataFactory.Extract_int(temp_section,1)
             kind = RowDataFactory.Extract_int(temp_section,2)
             shape_val = RowDataFactory.Extract_list(temp_section,3)[1:]
-            new_section = Section(id,(ShapeEnum)(kind),shape_val)
+            new_section = Section(temp_section_id,(ShapeEnum)(kind),shape_val)
             sections.append(new_section)
         return sections
 
