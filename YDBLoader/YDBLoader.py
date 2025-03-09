@@ -1,10 +1,10 @@
-from .BuildingDefine import Beam,Column,Joint,ComponentType
+from .BuildingDefine import Beam,Column,Joint,ComponentType,Grid
 from .BuildingDefine.Section import Section,ShapeEnum
 from .BuildingDefine.GlobalResult import SinglePeriod, Period
 from .SQLiteConnector import Connector,YDBTableName,RowDataFactory
 from .YDBType import YDBType
 import os
-from typing import List
+from typing import List, Dict
 
 class YDBLoader:
 
@@ -21,34 +21,48 @@ class YDBLoader:
     
     def get_columns(self)->List[Column]:
         columns = []
-        joints = self.__get_joints()
         sections = self.__get_sections(ComponentType.Column)
-        row_data = self.connector.extract_table_by_columns(YDBTableName.COLUMN_TABLE_NAME,YDBTableName.COLUMN_TABLE_USEFUL_COLUMNS)
+        row_data = self.connector.extract_table_by_columns(
+            YDBTableName.COLUMN_TABLE_NAME,
+            YDBTableName.COLUMN_TABLE_USEFUL_COLUMNS
+            )
         for temp_column in row_data:
             temp_col_id = RowDataFactory.extract_int(temp_column,0)
             joint_id = RowDataFactory.extract_int(temp_column,1)
             sect_id = RowDataFactory.extract_int(temp_column,2)
-            joint = [i for i in joints if i.id == joint_id][0]
+            joint = self.__find_joint_by_id(joint_id)
             sect = [s for s in sections if s.id == sect_id][0]
             new_column = Column(temp_col_id,joint,sect)
             columns.append(new_column)
         return columns
     
     def get_beams(self)->List[Beam]:
-        beams = []
+        beams = []      
         sections = self.__get_sections(ComponentType.Beam)
-        
-        
-        return sections
+        row_data = self.connector.extract_table_by_columns(
+            YDBTableName.BEAM_TABLE_NAME,
+            YDBTableName.BEAM_TABLE_USEFUL_COLUMNS
+            )
+        for temp_beam in row_data:
+            temp_beam_id = RowDataFactory.extract_int(temp_beam,0)
+            grid_id = RowDataFactory.extract_int(temp_beam,1)
+            grid = self.__find_grid_by_id(grid_id) 
+            sect_id = RowDataFactory.extract_int(temp_beam,2)
+            sect = [s for s in sections if s.id == sect_id][0]
+            new_beam = Beam(temp_beam_id,grid.start_joint,grid.end_joint,sect)
+            beams.append(new_beam)
+        return beams
 
     def __get_sections(self,comp_type:ComponentType):
         table_name = ""
         table_columns = []       
         table_names_for_different_comptype = {
             ComponentType.Column:
-                [YDBTableName.COLUMN_SECTION_TABLE_NAME,YDBTableName.SECTION_TABLE_USEFUL_COLUMNS],
+                [YDBTableName.COLUMN_SECTION_TABLE_NAME,
+                 YDBTableName.SECTION_TABLE_USEFUL_COLUMNS],
             ComponentType.Beam:
-                [YDBTableName.BEAM_SECTION_TABLE_NAME,YDBTableName.SECTION_TABLE_USEFUL_COLUMNS],
+                [YDBTableName.BEAM_SECTION_TABLE_NAME,
+                 YDBTableName.SECTION_TABLE_USEFUL_COLUMNS],
         }
         if (comp_type not in table_names_for_different_comptype.keys()):
             raise ValueError(f"{comp_type.name} is not suppported yet.")
@@ -67,19 +81,41 @@ class YDBLoader:
             sections.append(new_section)
         return sections
 
-    def __get_joints(self):
+    def __get_joints(self)->Dict[int,Joint]:
+        if self.joint_list != None:
+            return self.joint_list
         table_name = YDBTableName.JOINT_TABLE_NAME
         useful_columns = YDBTableName.JOINT_TABLE_USEFUL_COLUMNS
         row_data = self.connector.extract_table_by_columns(table_name,useful_columns)
-        joint_list = []
+        joint_list = {}
         for temp_joint in row_data:
             temp_joint_id = RowDataFactory.extract_int(temp_joint,0)
             x = RowDataFactory.extract_float(temp_joint,1)
             y = RowDataFactory.extract_float(temp_joint,2)
             std_flr_id = RowDataFactory.extract_int(temp_joint,3)
             new_joint = Joint(temp_joint_id,x,y,std_flr_id)
-            joint_list.append(new_joint)
-        return joint_list
+            joint_list[temp_joint_id] = new_joint
+        self.joint_list = joint_list
+        return self.joint_list
+
+    def __get_grids(self)->Dict[int,Grid]:
+        if self.grid_list !=None:
+            return self.grid_list
+        table_name = YDBTableName.GRID_TABLE_NAME
+        useful_columns = YDBTableName.GRID_TABLE_USEFUL_COLUMNS
+        row_data = self.connector.extract_table_by_columns(table_name,useful_columns)
+        grid_list = {}
+        for temp_grid in row_data:
+            temp_grid_id = RowDataFactory.extract_int(temp_grid,0)
+            start_joint_id = RowDataFactory.extract_int(temp_grid,1)
+            end_joint_id = RowDataFactory.extract_int(temp_grid,2)
+            s_joint = self.__find_joint_by_id(start_joint_id)
+            e_joint = self.__find_joint_by_id(end_joint_id)
+            grid = Grid(temp_grid_id,s_joint, e_joint)
+            grid_list[temp_grid_id] = grid
+        self.grid_list = grid_list
+        return self.grid_list        
+        
         
     def __check_ydb_type(self)->YDBType:
         if self.connector.is_table_in_db(YDBTableName.JOINT_TABLE_NAME):
@@ -87,7 +123,21 @@ class YDBLoader:
         if self.connector.is_table_in_db(YDBTableName.RESULT_PERIOD_TABLE):
             return YDBType.ResultYDB
         raise ValueError("This ydb database is not Model YDB neither Result YDB. Please use correct ydb file.")
-        
+    
+    def __find_joint_by_id(self,joint_id:int)->Joint:
+        joint_list = self.__get_joints()
+        try:
+            return joint_list[joint_id]
+        except KeyError:
+            raise ValueError(f"No Joint's ID is {joint_id}.")
+    
+    def __find_grid_by_id(self,grid_id:int)->Grid:
+        grid_list = self.__get_grids()
+        try:
+            return grid_list[grid_id]
+        except KeyError:
+            raise ValueError(f"No Joint's ID is {grid_id}.")
+    
     def get_period_result(self):
         if self.ydb_type != YDBType.ResultYDB:
             raise TypeError("This model is not ResultYDB file, please retry ")
