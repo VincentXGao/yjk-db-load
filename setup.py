@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='yjk_db_load',  # 包的名称
-    version='0.0.9',  # 包的版本号
+    version='0.0.10',  # 包的版本号
     author='Xinyu Gao (Vincent)',  # 作者姓名
     author_email='just_gxy@163.com',  # 作者邮箱
     description='A package to load .ydb files created by YJK.',  # 包的简短描述
