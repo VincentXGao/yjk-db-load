@@ -13,7 +13,12 @@ class Beam:
         self.start_joint = start_joint
         self.end_joint = end_joint
         self.section = section
+        self.std_flr_id = self.start_joint.std_flr_id
         
+        
+    def get_data_for_plot(self):
+        return [[self.start_joint.x,self.end_joint.x],[self.start_joint.y,self.end_joint.y]]
+    
     def __str__(self):
         return f"Beam:{self.id}-{str(self.section)}"
     

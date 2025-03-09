@@ -14,10 +14,6 @@ class YDBLoader:
             raise ValueError("Plase use file ends with .ybd!")
         self.connector = Connector(file_name)
         self.ydb_type = self.__check_ydb_type()
-        
-    def get_beams(self):
-        a = Beam()
-        return a
     
     def get_columns(self)->List[Column]:
         columns = []
@@ -82,7 +78,7 @@ class YDBLoader:
         return sections
 
     def __get_joints(self)->Dict[int,Joint]:
-        if self.joint_list != None:
+        if hasattr(self, 'joint_list'):
             return self.joint_list
         table_name = YDBTableName.JOINT_TABLE_NAME
         useful_columns = YDBTableName.JOINT_TABLE_USEFUL_COLUMNS
@@ -99,7 +95,7 @@ class YDBLoader:
         return self.joint_list
 
     def __get_grids(self)->Dict[int,Grid]:
-        if self.grid_list !=None:
+        if hasattr(self, 'grid_list'):
             return self.grid_list
         table_name = YDBTableName.GRID_TABLE_NAME
         useful_columns = YDBTableName.GRID_TABLE_USEFUL_COLUMNS
@@ -115,7 +111,6 @@ class YDBLoader:
             grid_list[temp_grid_id] = grid
         self.grid_list = grid_list
         return self.grid_list        
-        
         
     def __check_ydb_type(self)->YDBType:
         if self.connector.is_table_in_db(YDBTableName.JOINT_TABLE_NAME):

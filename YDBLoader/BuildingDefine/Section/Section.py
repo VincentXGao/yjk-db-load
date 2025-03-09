@@ -34,11 +34,14 @@ class Section:
             ShapeEnum.CircleCFT : lambda : f"{self.b}",
             ShapeEnum.HSRC : lambda : f"{self.b}",
             ShapeEnum.BoxSRC : lambda : f"{self.b}",
+            ShapeEnum.CrossSRC : lambda : f"{self.b}",
+            
+            ShapeEnum.UnKnown : lambda : f"Unknown:{self.b}"
         }
         return display_function[self.k]()
     
     def __repr__(self):
-        return str(self)
+        return self.__str__()
 
 if __name__ == "__main__":
     s = Section(1,ShapeEnum.Circle,[20,32])

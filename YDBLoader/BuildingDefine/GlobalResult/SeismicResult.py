@@ -2,6 +2,8 @@ import math
 from typing import List
 
 class SinglePeriod:
+    """单个周期
+    """
     def __init__(
         self,index:int,
         time:float, 
@@ -47,7 +49,7 @@ class Period:
             return result
         
     def __repr__(self):
-        return str(self)    
+        return self.__str__()
     
 if __name__ == "__main__":
     p_list = []
