@@ -8,14 +8,13 @@ from typing import List
 
 class YDBLoader:
 
-    def __init__(self, file_name = None, ydb_type:YDBType = None):
+    def __init__(self, file_name:str = None, ydb_type:YDBType = None):
         # default type is ModelType
-        self.ydb_type = ydb_type if ydb_type !=None else YDBType.ModelYDB
+        if not file_name.endswith(".ydb"):
+            raise ValueError("Plase use file ends with .ybd!")
         self.connector = Connector(file_name)
+        self.ydb_type = self.__check_ydb_type()
         
-    def sum(self,x,y):
-        return x+y
-    
     def get_beams(self):
         a = Beam()
         return a
@@ -34,14 +33,28 @@ class YDBLoader:
             new_column = Column(temp_col_id,joint,sect)
             columns.append(new_column)
         return columns
+    
+    def get_beams(self)->List[Beam]:
+        beams = []
+        sections = self.__get_sections(ComponentType.Beam)
+        
+        
+        return sections
 
     def __get_sections(self,comp_type:ComponentType):
         table_name = ""
-        table_columns = []
+        table_columns = []       
+        table_names_for_different_comptype = {
+            ComponentType.Column:
+                [YDBTableName.COLUMN_SECTION_TABLE_NAME,YDBTableName.SECTION_TABLE_USEFUL_COLUMNS],
+            ComponentType.Beam:
+                [YDBTableName.BEAM_SECTION_TABLE_NAME,YDBTableName.SECTION_TABLE_USEFUL_COLUMNS],
+        }
+        if (comp_type not in table_names_for_different_comptype.keys()):
+            raise ValueError(f"{comp_type.name} is not suppported yet.")
         # 这里根据不同的构件类型，进行不同的截面数据获取
-        if comp_type == ComponentType.Column:
-            table_name = YDBTableName.COLUMN_SECTION_TABLE_NAME
-            table_columns = YDBTableName.COLUMN_SECTION_TABLE_USEFUL_COLUMNS
+        table_name = table_names_for_different_comptype[comp_type][0]
+        table_columns = table_names_for_different_comptype[comp_type][1]
         row_data = self.connector.extract_table_by_columns(table_name,table_columns)
         sections = []
         for temp_section in row_data:
@@ -50,7 +63,7 @@ class YDBLoader:
             mat = RowDataFactory.extract_int(temp_section,1)
             kind = RowDataFactory.extract_int(temp_section,2)
             shape_val = RowDataFactory.extract_list(temp_section,3)[1:]
-            new_section = Section(temp_section_id,ShapeEnum.ConvertToShapeEnum(kind),shape_val)
+            new_section = Section(temp_section_id,ShapeEnum.ConvertToShapeEnum(kind),shape_val,mat)
             sections.append(new_section)
         return sections
 
@@ -67,6 +80,13 @@ class YDBLoader:
             new_joint = Joint(temp_joint_id,x,y,std_flr_id)
             joint_list.append(new_joint)
         return joint_list
+        
+    def __check_ydb_type(self)->YDBType:
+        if self.connector.is_table_in_db(YDBTableName.JOINT_TABLE_NAME):
+            return YDBType.ModelYDB
+        if self.connector.is_table_in_db(YDBTableName.RESULT_PERIOD_TABLE):
+            return YDBType.ResultYDB
+        raise ValueError("This ydb database is not Model YDB neither Result YDB. Please use correct ydb file.")
         
     def get_period_result(self):
         if self.ydb_type != YDBType.ResultYDB:

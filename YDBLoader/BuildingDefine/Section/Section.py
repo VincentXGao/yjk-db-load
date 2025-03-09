@@ -2,9 +2,15 @@ from .ShapeEnum import ShapeEnum
 from typing import List
 
 class Section:
-    def __init__(self,id:int,k:ShapeEnum,vals:List[float]):
+    def __init__(self,
+                 id:int,
+                 k:ShapeEnum,
+                 vals:List[float],
+                 mat:int = 1
+        ):
         self.id = id
         self.k = k
+        self.mat = mat
         value_number = len(vals)
         self.b = vals[0] if value_number>=1 else None
         self.h = vals[1] if value_number>=2 else None
@@ -31,6 +37,8 @@ class Section:
         }
         return display_function[self.k]()
     
+    def __repr__(self):
+        return str(self)
 
 if __name__ == "__main__":
     s = Section(1,ShapeEnum.Circle,[20,32])

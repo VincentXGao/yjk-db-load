@@ -21,14 +21,3 @@ class TestYDBLoader(unittest.TestCase):
         with self.assertRaises(AttributeError) as context:
             connector.set_db_file(file_path_not_exist)
         self.assertEqual(str(context.exception),"The file_path is not existed, please check your file path. ")
-
-    def test_add_2(self):
-        loader = YDBLoader()
-        result = loader.get_beams()
-        assert isinstance(result, Beam)
-
-    def test_add3(self):
-        loader = YDBLoader()
-        
-        result = loader.sum(2, 3)
-        assert result == 5

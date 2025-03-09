@@ -1,2 +1,5 @@
 class Beam:
-    pass
+    def __init__(self):
+        
+    
+        self.id = id 

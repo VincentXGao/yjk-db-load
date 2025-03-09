@@ -10,7 +10,10 @@ class Joint:
     def __str__(self):
         return f"Joint(id:{self.id}):[x:{self.x:.4f},y:{self.y:.4f}]:stdFlrId:{self.std_flr_id}"
     
-
+    def __repr__(self):
+        return str(self) 
+    
+    
 if __name__ == "__main__":
     j = Joint(1,3.1,36.6513246534313)
     print(j)

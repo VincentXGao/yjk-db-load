@@ -29,6 +29,8 @@ class SinglePeriod:
     def __str__(self):
         return f"T{self.index}:\t{self.time:.4f}s\t[X:{self.coeff_x*100:.1f}%;\tY:{self.coeff_y*100:.1f}%;\tZ:{self.coeff_z*100:.1f}%]"  
     
+    def __repr__(self):
+        return str(self) 
     
     
 class Period:
@@ -43,7 +45,9 @@ class Period:
             result += "\n....\n"
             result += str(self.periods[-1])
             return result
-    
+        
+    def __repr__(self):
+        return str(self)    
     
 if __name__ == "__main__":
     p_list = []

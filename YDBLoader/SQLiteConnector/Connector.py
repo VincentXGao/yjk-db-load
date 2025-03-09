@@ -60,6 +60,18 @@ class Connector:
             print(f"从表 {table_name} 提取数据时出错: {e}")
             return []
 
+    def is_table_in_db(self, table_name:str):
+        
+        if self.cursor is None:
+            self.connect()
+        try:
+            self.cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name=?", (table_name,))
+            result = self.cursor.fetchone()
+            return result
+        except sqlite3.Error as e:
+            print(f"从表 {table_name} 提取数据时出错: {e}")
+            return []
+
     def close(self):
         """
         关闭数据库连接
