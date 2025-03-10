@@ -83,7 +83,12 @@ class FloorSeismicResult:
         self.disp = disp
         self.stiffness = stiffness
         self.shear_capacity = shear_capacity
-        
+    
+    def __str__(self):
+        return f"Flr.{self.floor_num}:Fx={self.force.x};Fy={self.force.y}"
+
+    def __repr__(self):
+        return self.__str__()
 
 class SeismicResult:
     def __init__(self,
@@ -100,13 +105,20 @@ class SeismicResult:
         return [i+1 for i in range(len(self.floor_result))]
     
     def plot_shear(self):
-        fig,ax = plt.subplots(figsize=(5,5))
+        fig,ax = plt.subplots(figsize=(2,5))
         ax.plot(self.seismic_shear_x,self.floor_index)
         return fig,ax
     
     def __str__(self):
-        
-        return ""
+        result = f"Total floor: {len(self.floor_result)}\n"
+        for temp_result in self.floor_result:
+            result += str(temp_result)
+            result += "\n"
+        return result
+    
+    def __repr__(self):
+        return self.__str__()
+    
     
 if __name__ == "__main__":
     p_list = []

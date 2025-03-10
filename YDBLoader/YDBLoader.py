@@ -183,7 +183,7 @@ class YDBLoader:
             periods.append(period)
         return Period(periods)
 
-    def get_seismic_result(self):
+    def get_seismic_result(self)->SeismicResult:
         self.__check_result_model("seismic")
         table_name = YDBTableName.RESULT_FLOOR_DATA_TABLE
         useful_columns = YDBTableName.RESULT_FLOOR_DATA_USEFUL_COLUMNS_SEISMIC
