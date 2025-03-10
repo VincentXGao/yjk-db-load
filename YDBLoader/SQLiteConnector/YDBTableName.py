@@ -12,6 +12,10 @@ ECC_Y = "EccY"
 ROTATION = "Rotation"
 
 
+FLOOR_NUM = "FlrNo"
+TOWER_NUM = "TowNo"
+
+
 class YDBTableName():
     JOINT_TABLE_NAME = "tblJoint"
     JOINT_TABLE_USEFUL_COLUMNS = [ID,"X","Y",STD_FLR_ID]
@@ -52,4 +56,21 @@ class YDBTableName():
 
     RESULT_PERIOD_TABLE = "calEigenInf"
     RESULT_PERIOD_USEFUL_COLUMNS = ["ModuleID","EigenNo","Period","Angle","CoeffInf","mInf"]
+    """
+    0-moduleID
+    1-EigenNo 
+    2-Period Time
+    3-Angle
+    4-CoeffInf [unknown, xpart_ratio, ypart_ratio, zpart_ratio,
+    the sum of then should be 1]
+    5-MassInfo [unknown, xmass_participate, ymass_par, zmass_par,
+    the sum of all xmass_par should larger than 0.9]
+    """
 
+    RESULT_MASS_TABLE  = "preFlrTowProp"
+    RESULT_MASS_USEFUL_COLUMNS = [FLOOR_NUM,TOWER_NUM,"MassInf"]
+    """ 
+    0-floor_num , 
+    1-tower_num , 
+    2-mass_info, list of string, [unknown, dead_load, live_load, plus_load],
+    """

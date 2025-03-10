@@ -1,6 +1,6 @@
 from .BuildingDefine import Beam,Column,Joint,ComponentType,Grid
+from .BuildingDefine import SinglePeriod, Period, MassResult,SingleMassResult
 from .BuildingDefine.Section import Section,ShapeEnum
-from .BuildingDefine.GlobalResult import SinglePeriod, Period
 from .SQLiteConnector import Connector,YDBTableName,RowDataFactory
 from .YDBType import YDBType
 import os
@@ -133,9 +133,30 @@ class YDBLoader:
         except KeyError:
             raise ValueError(f"No Joint's ID is {grid_id}.")
     
-    def get_period_result(self):
+    def get_mass_result(self)->MassResult:
         if self.ydb_type != YDBType.ResultYDB:
-            raise TypeError("This model is not ResultYDB file, please retry ")
+            raise TypeError("This model is not ResultYDB file, "+
+                            "dont have mass result, please retry.")
+        table_name = YDBTableName.RESULT_MASS_TABLE
+        useful_columns = YDBTableName.RESULT_MASS_USEFUL_COLUMNS
+        row_data = self.connector.extract_table_by_columns(table_name,useful_columns)
+        mass_list = []
+        for temp_mass in row_data:
+            floor_num = RowDataFactory.convert_to_int(temp_mass,0)
+            tower_num = RowDataFactory.convert_to_int(temp_mass,1)
+            mass_info = RowDataFactory.extract_list(temp_mass,2)
+            dead_load = RowDataFactory.convert_to_float(mass_info[1])
+            live_load = RowDataFactory.convert_to_float(mass_info[2])
+            #  TODO: 需要计算slab的结果
+            slab_area = 10
+            single_mass = SingleMassResult(floor_num,tower_num,dead_load,live_load,slab_area)
+            mass_list.append(single_mass)      
+        return MassResult(mass_list)
+    
+    def get_period_result(self)->Period:
+        if self.ydb_type != YDBType.ResultYDB:
+            raise TypeError("This model is not ResultYDB file, "+
+                            "dont have period result, please retry.")
         table_name = YDBTableName.RESULT_PERIOD_TABLE
         useful_columns = YDBTableName.RESULT_PERIOD_USEFUL_COLUMNS
         row_data = self.connector.extract_table_by_columns(table_name,useful_columns)
