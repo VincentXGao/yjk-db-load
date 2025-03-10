@@ -1,5 +1,6 @@
 from .BuildingDefine import Beam,Column,Joint,ComponentType,Grid
 from .BuildingDefine import SinglePeriod, Period, MassResult,SingleMassResult
+from .BuildingDefine import ValuePeer, FloorSeismicResult , SeismicResult
 from .BuildingDefine.Section import Section,ShapeEnum
 from .SQLiteConnector import Connector,YDBTableName,RowDataFactory
 from .YDBType import YDBType
@@ -133,10 +134,13 @@ class YDBLoader:
         except KeyError:
             raise ValueError(f"No Joint's ID is {grid_id}.")
     
-    def get_mass_result(self)->MassResult:
+    def __check_result_model(self, extracting_data_type):
         if self.ydb_type != YDBType.ResultYDB:
             raise TypeError("This model is not ResultYDB file, "+
-                            "dont have mass result, please retry.")
+                            f"dont have {extracting_data_type} result, please retry.")
+    
+    def get_mass_result(self)->MassResult:
+        self.__check_result_model("mass")
         table_name = YDBTableName.RESULT_MASS_TABLE
         useful_columns = YDBTableName.RESULT_MASS_USEFUL_COLUMNS
         row_data = self.connector.extract_table_by_columns(table_name,useful_columns)
@@ -154,9 +158,7 @@ class YDBLoader:
         return MassResult(mass_list)
     
     def get_period_result(self)->Period:
-        if self.ydb_type != YDBType.ResultYDB:
-            raise TypeError("This model is not ResultYDB file, "+
-                            "dont have period result, please retry.")
+        self.__check_result_model("period")
         table_name = YDBTableName.RESULT_PERIOD_TABLE
         useful_columns = YDBTableName.RESULT_PERIOD_USEFUL_COLUMNS
         row_data = self.connector.extract_table_by_columns(table_name,useful_columns)
@@ -181,6 +183,35 @@ class YDBLoader:
             periods.append(period)
         return Period(periods)
 
+    def get_seismic_result(self):
+        self.__check_result_model("seismic")
+        table_name = YDBTableName.RESULT_FLOOR_DATA_TABLE
+        useful_columns = YDBTableName.RESULT_FLOOR_DATA_USEFUL_COLUMNS_SEISMIC
+        row_data = self.connector.extract_table_by_columns(table_name,useful_columns)
+        floor_result_list = []
+        for temp_floor in row_data:
+            floor_num = RowDataFactory.extract_int(temp_floor,0)
+            tower_num = RowDataFactory.extract_int(temp_floor,1)
+            force_x = RowDataFactory.convert_to_float(
+                RowDataFactory.extract_list(temp_floor,2)[1])
+            force_y = RowDataFactory.convert_to_float(
+                RowDataFactory.extract_list(temp_floor,3)[1])
+            shear_x = RowDataFactory.convert_to_float(
+                RowDataFactory.extract_list(temp_floor,4)[1])
+            shear_y = RowDataFactory.convert_to_float(
+                RowDataFactory.extract_list(temp_floor,5)[1])
+            moment_x = RowDataFactory.convert_to_float(
+                RowDataFactory.extract_list(temp_floor,6)[1])
+            moment_y = RowDataFactory.convert_to_float(
+                RowDataFactory.extract_list(temp_floor,7)[1])
+            force = ValuePeer(force_x,force_y)
+            shear = ValuePeer(shear_x, shear_y)
+            moment = ValuePeer(moment_x,moment_y)
+            
+            temp_floor_result = FloorSeismicResult(floor_num,tower_num,force,shear,moment)
+            floor_result_list.append(temp_floor_result)
+        
+        return SeismicResult(floor_result_list)
 
 
 if __name__ == "__main__":

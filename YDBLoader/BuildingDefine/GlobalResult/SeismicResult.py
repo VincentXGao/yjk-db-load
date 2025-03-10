@@ -1,5 +1,7 @@
 import math
+import abc
 from typing import List
+import matplotlib.pyplot as plt
 
 class SinglePeriod:
     """单个周期
@@ -33,8 +35,7 @@ class SinglePeriod:
     
     def __repr__(self):
         return str(self) 
-    
-    
+
 class Period:
     def __init__(self,periods:List[SinglePeriod] , model_type = None):
         self.periods = periods
@@ -50,6 +51,62 @@ class Period:
         
     def __repr__(self):
         return self.__str__()
+    
+class ValuePeer:
+    def __init__(self, x:float, y:float):
+        self.x = x
+        self.y = y
+    def __str__(self):
+        if self.x >500:
+            return f"X:{self.x:.1f}\tY:{self.y:.1f}"
+        elif self.x >5:
+            return f"X:{self.x:.2f}\tY:{self.y:.2f}"
+        else:
+            return f"X:{self.x:.3f}\tY:{self.y:.3f}"
+    
+class FloorSeismicResult:
+    def __init__(self,
+                 floor_num: int,
+                 tower_num: int,
+                 force:ValuePeer = None,
+                 shear:ValuePeer = None,
+                 moment:ValuePeer = None,
+                 disp:ValuePeer = None,
+                 stiffness:ValuePeer = None,
+                 shear_capacity:ValuePeer = None,
+                 ):
+        self.floor_num = floor_num
+        self.tower_num = tower_num
+        self.force = force
+        self.shear = shear
+        self.moment = moment
+        self.disp = disp
+        self.stiffness = stiffness
+        self.shear_capacity = shear_capacity
+        
+
+class SeismicResult:
+    def __init__(self,
+                 floor_result : List[FloorSeismicResult]
+        ):
+        self.floor_result = floor_result
+    
+    @property
+    def seismic_shear_x(self):
+        return [i.shear.x for i in self.floor_result]
+    
+    @property
+    def floor_index(self):
+        return [i+1 for i in range(len(self.floor_result))]
+    
+    def plot_shear(self):
+        fig,ax = plt.subplots(figsize=(5,5))
+        ax.plot(self.seismic_shear_x,self.floor_index)
+        return fig,ax
+    
+    def __str__(self):
+        
+        return ""
     
 if __name__ == "__main__":
     p_list = []

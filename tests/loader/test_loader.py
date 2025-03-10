@@ -21,3 +21,9 @@ class TestYDBLoader(unittest.TestCase):
         with self.assertRaises(AttributeError) as context:
             connector.set_db_file(file_path_not_exist)
         self.assertEqual(str(context.exception),"The file_path is not existed, please check your file path. ")
+
+    
+    def test_extract_seismic_result(self):
+        file_path = "testfiles/dsnModel_yxy.ydb"
+        model = YDBLoader(file_path)
+        model.get_seismic_result()

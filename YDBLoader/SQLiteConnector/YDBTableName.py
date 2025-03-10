@@ -74,3 +74,23 @@ class YDBTableName():
     1-tower_num , 
     2-mass_info, list of string, [unknown, dead_load, live_load, plus_load],
     """
+    
+    RESULT_FLOOR_DATA_TABLE = "dsnStatFlrData"
+    """包含了大多数楼层计算结果，包括风、地震的各类外力、承载力、刚度等"""
+    RESULT_FLOOR_DATA_USEFUL_COLUMNS_SEISMIC = [
+        FLOOR_NUM,TOWER_NUM,"FlrFXInf","FlrFYInf", # 0 1 2 3
+        "FlrVXInf","FlrVYInf","FlrMXInf","FlrMYInf", # 4 5 6 7
+        ] 
+    """ 
+    0-floor_num , 
+    1-tower_num , 
+    2-X方向地震外力,
+    3-Y方向地震外力,
+    4-X方向地震层间剪力,
+    5-Y方向地震层间剪力,
+    6-X方向地震倾覆力矩,
+    7-Y方向地震倾覆力矩,
+    """
+    
+    
+    

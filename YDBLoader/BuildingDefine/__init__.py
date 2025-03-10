@@ -6,3 +6,4 @@ from .Slab import Slab
 
 from .ComponentType import ComponentType
 from .GlobalResult import SingleMassResult, MassResult, Period, SinglePeriod
+from .GlobalResult import ValuePeer, FloorSeismicResult, SeismicResult
