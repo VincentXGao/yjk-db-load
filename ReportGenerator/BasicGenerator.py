@@ -1,3 +1,4 @@
+from enum import Enum
 from docx import Document
 from docx.shared import Inches, RGBColor, Pt, Cm
 from docx.oxml.ns import qn, nsdecls
@@ -6,15 +7,34 @@ from docx.enum.table import WD_CELL_VERTICAL_ALIGNMENT, WD_TABLE_ALIGNMENT
 from docx.oxml import parser
 from docx.oxml.xmlchemy import BaseOxmlElement
 from docx.enum.section import WD_ORIENTATION
-
 from .DocParagraph import DocParagraph
 from .DocPicture import DocPicture
 from .DocTable import DocTable
-
 from .UtilFunctions import set_cell_border , analysis_sub_and_super_script
-
 FONT_STR = "w:eastAsia"
 
+class Page:
+    def __init__(self,width:float,height:float,is_landscape=False):
+        self._width = width
+        self._height = height
+        self.is_landscape = is_landscape
+        
+    @property
+    def width(self):
+        return self._height if self.is_landscape else self._width
+    
+    @property
+    def height(self):
+        return self._width if self.is_landscape else self._height
+
+
+class PageSize(Enum):
+    A4 = Page(210,297)
+    A4_LANDSCAPE = Page(210,297,True)
+    A3 = Page(297,420)
+    A3_LANDSCAPE = Page(297,420,True)
+    
+    
 class BasicGenerator:
 
     def __init__(self):
@@ -78,6 +98,17 @@ class BasicGenerator:
         small_title_style.paragraph_format.line_spacing = Pt(15)
         return small_title_style
 
+    def change_paper_size(self, page_size:PageSize, column_num:int = 1):
+        factor = 36000
+        section = self.doc.sections[0]
+        section.page_width = int(page_size.value.width * factor)
+        section.page_heigth = int(page_size.value.height * factor)
+        if page_size.value.is_landscape:
+            section.orientation = WD_ORIENTATION.LANDSCAPE 
+        sect_pr = section._sectPr
+        cols = sect_pr.xpath('./w:cols')[0]
+        cols.set(qn('w:num'), str(column_num))
+    
     def add_big_title(self, context):
         p = self.doc.add_paragraph(context)
         run = p.runs[0]
@@ -226,3 +257,4 @@ class BasicGenerator:
             except Exception:
                 path = path.replace(".docx","1.docx")
 
+    
