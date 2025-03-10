@@ -38,8 +38,10 @@ class PageSize(Enum):
 class BasicGenerator:
 
     def __init__(self):
+        self.mm_factor = 36000
         self.doc = Document()
         self.init_styles()
+        self.highlighted_color = 7
 
     def init_styles(self):
         styles = self.doc.styles
@@ -99,15 +101,23 @@ class BasicGenerator:
         return small_title_style
 
     def change_paper_size(self, page_size:PageSize, column_num:int = 1):
-        factor = 36000
         section = self.doc.sections[0]
-        section.page_width = int(page_size.value.width * factor)
-        section.page_heigth = int(page_size.value.height * factor)
+        section.page_width = int(page_size.value.width * self.mm_factor)
+        section.page_heigth = int(page_size.value.height * self.mm_factor)
         if page_size.value.is_landscape:
             section.orientation = WD_ORIENTATION.LANDSCAPE 
         sect_pr = section._sectPr
         cols = sect_pr.xpath('./w:cols')[0]
         cols.set(qn('w:num'), str(column_num))
+        
+    def change_paper_margin(self, left:int, top:int, right:int, bottom:int):
+        """改变页边距，单位为mm，按照左、上、右、下的顺序
+        """
+        section = self.doc.sections[0]
+        section.top_margin = int(self.mm_factor * top)
+        section.bottom_margin = int(self.mm_factor * bottom)
+        section.left_margin = int(self.mm_factor * left)
+        section.right_margin = int(self.mm_factor * right)
     
     def add_big_title(self, context):
         p = self.doc.add_paragraph(context)
@@ -116,7 +126,7 @@ class BasicGenerator:
         run.font.bold = True
         p.alignment = WD_PARAGRAPH_ALIGNMENT.CENTER
 
-    def add_title(self,title:DocParagraph):
+    def add_title(self,title:DocParagraph,space_before:float = 0 ,space_after:float = 0):
         """为了添加大纲等级而添加的函数，不需要大纲等级时不要使用
 
         Args:
@@ -128,15 +138,18 @@ class BasicGenerator:
         run._element.rPr.rFonts.set(qn('w:eastAsia'), u'宋体')
         run.font.color.rgb = RGBColor(0, 0, 0)
         par_format = p.paragraph_format
-        par_format.space_before = Pt(0)
-        par_format.space_after = Pt(0)
+        par_format.space_before = Pt(space_before)
+        par_format.space_after = Pt(space_after)
         
         self.paragraph_format_double_check(p,title)
 
     def add_paragraph(self, par:DocParagraph):
         if '{' in par.context:
             a,b = analysis_sub_and_super_script(par.context)
-            p = self.doc.add_paragraph()
+            if par.style != None:
+                p = self.doc.add_paragraph("",par.style)
+            else:
+                p = self.doc.add_paragraph()
             self.add_context_with_sub_or_super(p,a,b)
         elif par.style !=None:
             p = self.doc.add_paragraph(par.context,par.style)
@@ -152,6 +165,8 @@ class BasicGenerator:
                 run.font.subscript = True
             elif sub_or_super[i] == 2:
                 run.font.superscript = True
+            elif sub_or_super[i] ==3:
+                run.font.highlight_color = self.highlighted_color
             run.font.size = Pt(11)
 
     def paragraph_format_double_check(self,p,doc_par:DocParagraph):
@@ -163,6 +178,10 @@ class BasicGenerator:
         par_format = p.paragraph_format
         if doc_par.first_line_indent != None:
             par_format.first_line_indent = Inches(doc_par.first_line_indent)
+        if doc_par.alignment != None:
+            par_format.alignment = doc_par.alignment
+        if doc_par.font_size != None:
+            run.font.size = Pt(doc_par.font_size)
 
     def add_table(self, my_table:DocTable):
         if my_table.title != None:

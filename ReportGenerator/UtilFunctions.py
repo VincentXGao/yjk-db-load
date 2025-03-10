@@ -48,7 +48,7 @@ def set_cell_border(cell, **kwargs):
             
 def analysis_sub_and_super_script(context:str):
     """根据字符串中的'_'与'^'标志的上下标（上下标需要被{}包围起来），将字符串分隔并返回上下标结果
-    返回的sub_or_super列表中，0代表常规字符，1代表下标，2代表上标
+    返回的sub_or_super列表中，0代表常规字符，1代表下标，2代表上标，3代表highlighted
     Args:
         context (str): 输入的文字
     """
@@ -58,13 +58,18 @@ def analysis_sub_and_super_script(context:str):
     j = 0
     length = len(context)
     flag = False
+    index_for_flag = {
+        "_" : 1,
+        "^" : 2,
+        "*" : 3
+    }
     
     for c in context:
-        if (c == '_' or c == '^') and (j <length and context[j+1] =='{'):
+        if (c in index_for_flag.keys()) and (j <length and context[j+1] =='{'):
             flag = True
             contexts.append(context[i:j])
-            sub_or_super.append(1 if c == "_" else 2)
-            i = j+2
+            sub_or_super.append(index_for_flag[c])
+            i = j  + 2
         if flag and c == "}":
             contexts.append(context[i:j])
             sub_or_super.append(0)
