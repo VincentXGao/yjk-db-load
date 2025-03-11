@@ -2,10 +2,10 @@ import unittest
 import sys
 import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
-from YDBLoader import YDBLoader
-from YDBLoader.BuildingDefine import Beam,Column, Section
-from YDBLoader.BuildingDefine.Section import ShapeEnum
-from ReportGenerator import StairCalculationReport,add_comma_in_num_str
+from CivilTools.YDBLoader import YDBLoader
+from CivilTools.YDBLoader.BuildingDefine import Beam,Column, Section
+from CivilTools.YDBLoader.BuildingDefine.Section import ShapeEnum
+from CivilTools.ReportGenerator import StairCalculationReport,add_comma_in_num_str
 
 
 class TestUtilFunctions(unittest.TestCase):

@@ -1,6 +1,6 @@
 from .BasicGenerator import BasicGenerator,PageSize
 from docx.shared import Inches, RGBColor, Pt, Cm
-from YDBLoader.BuildingDefine.StairPart import Position, StairPart,LoadParams,StairLoad,LoadCalulateType
+from CivilTools.YDBLoader.BuildingDefine.StairPart import Position, StairPart,LoadParams,StairLoad,LoadCalulateType
 from .UtilFunctions import MatrixSolver
 from .DocTable import DocTable
 from .DocPicture import DocPicture

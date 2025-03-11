@@ -2,11 +2,11 @@ import unittest
 import sys
 import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
-from YDBLoader import YDBLoader
-from YDBLoader.BuildingDefine import Beam,Column, Section
-from YDBLoader.SQLiteConnector import Connector
-from YDBLoader.BuildingDefine.Section import ShapeEnum
-from YDBLoader.BuildingDefine.Geometry import Joint
+from CivilTools.YDBLoader import YDBLoader
+from CivilTools.YDBLoader.BuildingDefine import Beam,Column, Section
+from CivilTools.YDBLoader.SQLiteConnector import Connector
+from CivilTools.YDBLoader.BuildingDefine.Section import ShapeEnum
+from CivilTools.YDBLoader.BuildingDefine.Geometry import Joint
 
 class TestConnector(unittest.TestCase):
     def test_is_table_in_db(self):

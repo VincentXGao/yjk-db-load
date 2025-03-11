@@ -1,6 +1,6 @@
 from docx.oxml.xmlchemy import BaseOxmlElement
 from docx.oxml.ns import qn, nsdecls
-from YDBLoader.BuildingDefine.StairPart import StairPart, Component
+from CivilTools.YDBLoader.BuildingDefine.StairPart import StairPart, Component
 import numpy as np
 
 # 网上找的代码，有点东西

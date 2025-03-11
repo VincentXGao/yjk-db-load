@@ -2,10 +2,10 @@ import unittest
 import sys
 import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
-from YDBLoader import YDBLoader,YDBType
-from YDBLoader.BuildingDefine import Beam,Column, Section
-from YDBLoader.SQLiteConnector import Connector
-from YDBLoader.BuildingDefine.Section import ShapeEnum
+from CivilTools.YDBLoader import YDBLoader,YDBType
+from CivilTools.YDBLoader.BuildingDefine import Beam,Column, Section
+from CivilTools.YDBLoader.SQLiteConnector import Connector
+from CivilTools.YDBLoader.BuildingDefine.Section import ShapeEnum
 
 class TestPeriod(unittest.TestCase):
     def test_period_extract(self):

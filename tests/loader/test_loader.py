@@ -2,9 +2,9 @@ import unittest
 import sys
 import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
-from YDBLoader import YDBLoader
-from YDBLoader.BuildingDefine import Beam
-from YDBLoader.SQLiteConnector import Connector
+from CivilTools.YDBLoader import YDBLoader
+from CivilTools.YDBLoader.BuildingDefine import Beam
+from CivilTools.YDBLoader.SQLiteConnector import Connector
 
 
 class TestYDBLoader(unittest.TestCase):

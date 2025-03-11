@@ -1,11 +1,11 @@
 from setuptools import setup, find_packages
 
 setup(
-    name='yjk_db_load',  # 包的名称
-    version='0.0.10',  # 包的版本号
+    name='civil_tools',  # 包的名称
+    version='0.0.1',  # 包的版本号
     author='Xinyu Gao (Vincent)',  # 作者姓名
     author_email='just_gxy@163.com',  # 作者邮箱
-    description='A package to load .ydb files created by YJK.',  # 包的简短描述
+    description='A powerful tool for civil engineer in their work.',  # 包的简短描述
     long_description=open('README.md',encoding="utf-8").read(),  # 包的详细描述
     long_description_content_type='text/markdown',  # 详细描述的内容类型
     url='https://github.com/VincentXGao/yjk-db-load',  # 项目的 URL
