@@ -8,7 +8,7 @@ setup(
     description='A powerful tool for civil engineer in their work.',  # 包的简短描述
     long_description=open('README.md',encoding="utf-8").read(),  # 包的详细描述
     long_description_content_type='text/markdown',  # 详细描述的内容类型
-    url='https://github.com/VincentXGao/yjk-db-load',  # 项目的 URL
+    url='https://github.com/VincentXGao/civil-tools',  # 项目的 URL
     packages=find_packages(exclude=['tests']),  # 自动发现并包含所有的包
     classifiers=[
         'Programming Language :: Python :: 3',
