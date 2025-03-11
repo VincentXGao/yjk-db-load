@@ -4,7 +4,7 @@ from docx.shared import Inches, RGBColor, Pt, Cm
 from docx.oxml.ns import qn, nsdecls
 from docx.enum.text import WD_PARAGRAPH_ALIGNMENT, WD_BREAK
 from docx.enum.table import WD_CELL_VERTICAL_ALIGNMENT, WD_TABLE_ALIGNMENT
-from docx.oxml import parser
+from docx.oxml.parser import parse_xml
 from docx.oxml.xmlchemy import BaseOxmlElement
 from docx.enum.section import WD_ORIENTATION
 from .DocParagraph import DocParagraph
@@ -189,34 +189,22 @@ class BasicGenerator:
             p.alignment = WD_PARAGRAPH_ALIGNMENT.CENTER
         table = self.doc.add_table(rows=my_table.row_num, cols=my_table.column_num, style='Table Grid')                   
         table.alignment = WD_TABLE_ALIGNMENT.CENTER
+        for (i,j,k,p) in my_table.merged_cells:
+            table.cell(i,j).merge(table.cell(k,p))
         for i in range(my_table.row_num):
             for j in range(my_table.column_num):
                 self.add_table_cell(table,my_table,i,j)
-
-    def add_calculate_table(self, my_table:DocTable):
-        if my_table.title != None:
-            self.doc.add_paragraph(my_table.title,self.small_title_style)
-        table = self.doc.add_table(rows=my_table.row_num, cols=my_table.column_num, style='Table Grid')                   
-        table.alignment = WD_TABLE_ALIGNMENT.CENTER
-         #  有若干行需要merge
-        for i in my_table.merge_lines:
-            table.cell(i,1).merge(table.cell(i,3))
-        for i in range(len(my_table.context)):
-            for j in range(len(my_table.context[i])):
-                self.add_table_cell(table,my_table,i,j)
-       
-        
         self.tab_bg_color(table,my_table.row_num,my_table.column_num)
-
+    
     def tab_bg_color(self, table, rows, cols, color_str='CCCCCC'):
         """表格样式调整"""
         shading_list = locals()
         for i in range(cols):
-            shading_list['shading_elm_' + str(i)] = parser(
+            shading_list['shading_elm_' + str(i)] = parse_xml(
                 r'<w:shd {} w:fill="{bgColor}"/>'.format(nsdecls('w'), bgColor=color_str))
             table.rows[0].cells[i]._tc.get_or_add_tcPr().append(shading_list['shading_elm_' + str(i)])
         for i in range(rows):
-            shading_list['shading_elm_' + str(cols+i)] = parser(
+            shading_list['shading_elm_' + str(cols+i)] = parse_xml(
                 r'<w:shd {} w:fill="{bgColor}"/>'.format(nsdecls('w'), bgColor=color_str))
             table.rows[i].cells[0]._tc.get_or_add_tcPr().append(shading_list['shading_elm_' + str(cols+i)])
         table_cells = table._cells
@@ -229,22 +217,21 @@ class BasicGenerator:
                     runs = table_row[k].paragraphs[0].runs
                     for m in range(len(runs)):
                         runs[m].bold = True
-                table.rows[i].height = Cm(0.7)
-        row = table.rows[0]
-        tr = row._tr
-        tr_pr = tr.get_or_add_trPr()
-        tbl_header = BaseOxmlElement('w:tblHeader')
-        tbl_header.set(qn('w:val'), "true")
-        tr_pr.append(tbl_header)
+                table.rows[i].height = Cm(0.7)  
 
     def add_table_cell(self, table, my_table:DocTable, i,j):
         try:
             cell = table.cell(i, j)  
         except IndexError:
             return
-        cell.text = my_table.context[i][j]
-        cell.paragraphs[0].style = self.table_style
-        p = cell.paragraphs[0]
+        if '{' in my_table.context[i][j]:
+            a,b = analysis_sub_and_super_script(my_table.context[i][j])
+            p = cell.paragraphs[0]
+            self.add_context_with_sub_or_super(p,a,b)
+        else:
+            cell.text = my_table.context[i][j]
+            cell.paragraphs[0].style = self.table_style
+            p = cell.paragraphs[0]
         p.alignment = WD_PARAGRAPH_ALIGNMENT.CENTER
         if my_table.no_grid:
             set_cell_border(cell,top={"color": "#FFFFFF"},

@@ -11,5 +11,5 @@ class TestSeismicReport(unittest.TestCase):
     def test_generate_paper(self):
         report = SeismicReport()
         report.creat_doc()
-        report.save("MyReport.docx")
+        report.save("testfiles/MyReport.docx")
 

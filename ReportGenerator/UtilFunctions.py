@@ -43,8 +43,6 @@ def set_cell_border(cell, **kwargs):
             for key in ["sz", "val", "color", "space", "shadow"]:
                 if key in edge_data:
                     element.set(qn('w:{}'.format(key)), str(edge_data[key]))
-                    
-
             
 def analysis_sub_and_super_script(context:str):
     """根据字符串中的'_'与'^'标志的上下标（上下标需要被{}包围起来），将字符串分隔并返回上下标结果
@@ -78,4 +76,14 @@ def analysis_sub_and_super_script(context:str):
         j+=1
     contexts.append(context[i:j])
     return contexts, sub_or_super
-            
+
+def add_comma_in_num_str(num:int):
+    if not isinstance(num, int):
+        raise ValueError("Only int number can be added.")
+    num_str = str(num)[::-1]
+    result = ""
+    for i in range(len(num_str)):
+        if i>0 and i%3 == 0 and num_str[i] !="-":
+            result = "," + result
+        result = num_str[i] + result
+    return result
