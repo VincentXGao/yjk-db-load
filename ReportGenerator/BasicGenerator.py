@@ -222,6 +222,7 @@ class BasicGenerator:
     def add_table_cell(self, table, my_table:DocTable, i,j):
         try:
             cell = table.cell(i, j)  
+            _ = my_table.context[i][j]
         except IndexError:
             return
         if '{' in my_table.context[i][j]:

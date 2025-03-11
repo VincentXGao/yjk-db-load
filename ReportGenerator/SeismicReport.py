@@ -33,7 +33,7 @@ class SeismicReport(BasicGenerator):
         
     def __add_seismic_chapter(self):
         chapter_index = 8
-        sub_index = 1
+        sub_index = 1 
         self.__add_seismic_chapter_title(chapter_index)
         sub_index = self.__add_seismic_embedding(chapter_index,sub_index)
         sub_index = self.__add_project_mass(chapter_index, sub_index)
