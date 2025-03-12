@@ -1,5 +1,6 @@
 import ezdxf
 import warnings
+from math import inf
 from typing import List, Iterable, Tuple
 from .LayerManager import CADLayer, CADColor,CADLineType
 
@@ -33,6 +34,8 @@ class BasicDXF:
         self.doc = ezdxf.new(BasicDXF.DXF2007)
         self.model_space = self.doc.modelspace()
         self.__loaded_line_types = []
+        self.__min_point = (inf,inf)
+        self.__max_point = (-inf,-inf)
         
     
     def init_layers(self, layer_list:List[CADLayer]):
@@ -51,11 +54,22 @@ class BasicDXF:
             temp_layer.dxf.linetype = my_layer.line_type.name
     
     def creat_test(self):
-        self.__add_polyline([[0,0],[5000,0],[5000,500]],DrawingAttribs("AA"))
+        self.add_polyline([[0,0],[5000,0],[5000,500]],DrawingAttribs("AA"))
 
-    def __add_polyline(self,points:Iterable[Tuple[float, float]], attribs:DrawingAttribs):
+    def add_polyline(self,points:Iterable[Tuple[float, float]], attribs:DrawingAttribs):
         polyline = self.model_space.add_lwpolyline(points,close=attribs.close)
         polyline.dxf.layer = attribs.layer
+
+        max_x = max([pt[0] for pt in points])
+        max_y = max([pt[1] for pt in points])
+        min_x = min([pt[0] for pt in points])
+        min_y = min([pt[1] for pt in points])
+        self.__update_boundary(max_x,max_y)
+        self.__update_boundary(min_x,min_y)
+
+    def add_circle(self,center_point:Iterable[float],radius:float,attribs:DrawingAttribs):
+        circle = self.model_space.add_circle(center_point,radius)
+        circle.dxf.layer = attribs.layer
 
 
     
@@ -69,8 +83,24 @@ class BasicDXF:
             except Exception:
                 path = path.replace(BasicDXF.file_extension,"1"+BasicDXF.file_extension)
     def __change_view(self):
-        self.doc.set_modelspace_vport(6000)
+        y_range = self.__max_point[1] - self.__min_point[1]
+        x_range = self.__max_point[0] - self.__min_point[0]
+
+        y_middle = (self.__max_point[1] + self.__min_point[1])/2
+        x_middle = (self.__max_point[0] + self.__min_point[0])/2
+        self.doc.set_modelspace_vport(max(x_range,y_range),(x_middle,y_middle))
     
+    def __update_boundary(self, x, y):
+        temp_x1 = self.__min_point[0]
+        temp_y1 = self.__min_point[1]
+        self.__min_point = [min(temp_x1,x),min(temp_y1,y)]
+
+        temp_x2 = self.__max_point[0]
+        temp_y2 = self.__max_point[1]
+        self.__max_point = [max(temp_x2,x),max(temp_y2,y)]
+
+
+
     def __load_line_type(self, name:str, pattern:List[float]):
         if name in self.__loaded_line_types:
             return

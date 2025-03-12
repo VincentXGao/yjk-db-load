@@ -19,7 +19,13 @@ class CADLineType(Enum):
 
 
 class CADLayer:
-    def __init__(self,name:str,color:CADColor,line_type:CADLineType):
+    def __init__(self,name:str,color:CADColor,line_type:CADLineType=CADLineType.Continuous):
         self.name = name
         self.color = color
         self.line_type = line_type
+
+
+class DefaultLayers:
+    TEXT = CADLayer("0S-TEXT",CADColor.Cyan)
+    SYMBOL = CADLayer("0S-SYMB",CADColor.Red)
+    
