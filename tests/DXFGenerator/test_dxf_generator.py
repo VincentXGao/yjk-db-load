@@ -12,7 +12,7 @@ class TestDXFGenerator(unittest.TestCase):
     def test_dxf_generator(self):
         basic = BasicDXF()
         layer_list = [
-            CADLayer("AA",CADColor.Blue,CADLineType.CENTER),
+            CADLayer("AA",CADColor.Green,CADLineType.DASHED),
             CADLayer("BB",CADColor.Yellow,CADLineType.DASHED),
             CADLayer("CC",CADColor.Red,CADLineType.DASHDOT)
             ]

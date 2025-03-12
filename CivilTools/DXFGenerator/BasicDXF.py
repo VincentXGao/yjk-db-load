@@ -1,7 +1,17 @@
 import ezdxf
 import warnings
-from typing import List
+from typing import List, Iterable, Tuple
 from .LayerManager import CADLayer, CADColor,CADLineType
+
+class DrawingAttribs:
+    def __init__(self,
+                 layer:str,
+                 color_index:int=256,
+                 close:bool=True,
+        ):
+        self.layer = layer
+        self.color_index = color_index
+        self.close = close
 
 class BasicDXF:
     file_extension = ".dxf"
@@ -41,15 +51,16 @@ class BasicDXF:
             temp_layer.dxf.linetype = my_layer.line_type.name
     
     def creat_test(self):
-        self.__add_polyline()
+        self.__add_polyline([[0,0],[5000,0],[5000,500]],DrawingAttribs("AA"))
 
-    def __add_polyline(self):
-        polyline = self.model_space.add_lwpolyline([[0,0],[5000,0],[5000,500]],close=True)
-        polyline.dxf.layer = "AA"
+    def __add_polyline(self,points:Iterable[Tuple[float, float]], attribs:DrawingAttribs):
+        polyline = self.model_space.add_lwpolyline(points,close=attribs.close)
+        polyline.dxf.layer = attribs.layer
 
 
     
     def save(self,path:str):
+        self.__change_view()
         if not path.endswith(BasicDXF.file_extension):
             path += BasicDXF.file_extension
         for _ in range(10):
@@ -57,7 +68,9 @@ class BasicDXF:
                 self.doc.saveas(path)
             except Exception:
                 path = path.replace(BasicDXF.file_extension,"1"+BasicDXF.file_extension)
-
+    def __change_view(self):
+        self.doc.set_modelspace_vport(6000)
+    
     def __load_line_type(self, name:str, pattern:List[float]):
         if name in self.__loaded_line_types:
             return
