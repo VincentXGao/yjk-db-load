@@ -3,16 +3,8 @@ import warnings
 from math import inf
 from typing import List, Iterable, Tuple
 from .LayerManager import CADLayer, CADColor,CADLineType
+from .DrawingAttribs import DrawingAttribs,PolylineAttribs
 
-class DrawingAttribs:
-    def __init__(self,
-                 layer:str,
-                 color_index:int=256,
-                 close:bool=False,
-        ):
-        self.layer = layer
-        self.color_index = color_index
-        self.close = close
 
 class BasicDXF:
     file_extension = ".dxf"
@@ -29,7 +21,11 @@ class BasicDXF:
     where an element > 0 is a line, an element < 0 is a gap and  an
     element == 0.0 is a dot.
     """
-        
+    DIM_STYLE_PREFIX = "CT"
+    TEXT_STYLE_NAME = "CT2025"
+    TEXT_SHX = 'xd-hzs.shx'
+    TEXT_BIG_SHX = 'xd-hztxt.shx'
+    
     def __init__(self):
         self.doc = ezdxf.new(BasicDXF.DXF2007)
         self.model_space = self.doc.modelspace()
@@ -37,7 +33,7 @@ class BasicDXF:
         self.__min_point = [inf,inf]
         self.__max_point = [-inf,-inf]
         self.__load_text_type()
-        self.__load_dim_type()
+        self.__load_dim_type(100)
         
     
     def init_layers(self, layer_list:List[CADLayer]):
@@ -58,15 +54,15 @@ class BasicDXF:
     
     
     def creat_test(self):
-        self._add_polyline([[0,0],[5000,0],[5000,500]],DrawingAttribs("AA"))
+        self._add_polyline([[0,0],[5000,0],[5000,500]],PolylineAttribs("AA"))
 
-    def _add_horizental_line(self, start_x, start_y, length:float,attribs:DrawingAttribs):
+    def _add_horizental_line(self, start_x, start_y, length:float,attribs:PolylineAttribs):
         self._add_polyline([[start_x,start_y],[start_x+length,start_y]],attribs)
         
-    def _add_vertical_line(self, start_x, start_y, length:float,attribs:DrawingAttribs):
+    def _add_vertical_line(self, start_x, start_y, length:float,attribs:PolylineAttribs):
         self._add_polyline([[start_x,start_y],[start_x,start_y+length]],attribs)
 
-    def _add_polyline(self,points:Iterable[Tuple[float, float]], attribs:DrawingAttribs):
+    def _add_polyline(self,points:Iterable[Tuple[float, float]], attribs:PolylineAttribs):
         polyline = self.model_space.add_lwpolyline(points,close=attribs.close)
         polyline.dxf.layer = attribs.layer
 
@@ -81,10 +77,32 @@ class BasicDXF:
         circle = self.model_space.add_circle(center_point,radius)
         circle.dxf.layer = attribs.layer
 
-    def _add_dimension(self, start_point:Iterable[float], end_point:Iterable[float]):
+    def _add_dimension(self,
+                       start_point:Iterable[float],
+                       end_point:Iterable[float],
+                       attribs:DrawingAttribs|None = None
+                       ):
+        dimension = self.model_space.add_linear_dim((0,0),
+                                                    start_point,
+                                                    end_point,
+                                                    dimstyle="CT-100").render()
         
-        dimension = self.model_space.add_linear_dim((0,0),start_point,end_point,dimstyle="CT-100")
+        if attribs != None:
+            # 这里.dimension才是Dimension对象，才有dxf属性
+            dimension.dimension.dxf.layer = attribs.layer
 
+            
+        
+        
+        
+    def _add_text(self, context:str, insert_point):
+        
+        text = self.model_space.add_text(context,height=300)
+        text.dxf.insert = insert_point
+        text.dxf.style = BasicDXF.TEXT_STYLE_NAME
+        
+        
+    
     def _save(self,path:str):
         self.__change_view()
         if not path.endswith(BasicDXF.file_extension):
@@ -125,15 +143,15 @@ class BasicDXF:
         self.doc.linetypes.add(name,pattern)
         self.__loaded_line_types.append(name)
         
-    def __load_dim_type(self):
+    def __load_dim_type(self, scale:int):
         # 获取标注样式表
         dimstyles = self.doc.dimstyles
         # 定义新标注样式的名称
-        new_dimstyle_name = 'CT-100'
+        new_dimstyle_name = f"{BasicDXF.DIM_STYLE_PREFIX}-{scale}"
         # 创建新的标注样式
         new_dimstyle = dimstyles.new(new_dimstyle_name)
         # 设置标注文字样式
-        new_dimstyle.dxf.dimtxsty = 'CT2025'
+        new_dimstyle.dxf.dimtxsty = BasicDXF.TEXT_STYLE_NAME
         # 设置标注文字高度
         new_dimstyle.dxf.dimtxt = 2.5
         # 设置箭头大小
@@ -143,29 +161,32 @@ class BasicDXF:
         # 设置尺寸界线起点偏移量
         new_dimstyle.dxf.dimse1 = 0.625
         #  设置全局比例
-        new_dimstyle.dxf.dimscale = 100
+        new_dimstyle.dxf.dimscale = scale
         # 保留至整数
         new_dimstyle.dxf.dimrnd = 1
         # 改为建筑箭头
         new_dimstyle.dxf.dimblk = 'ARCHTICK'
         new_dimstyle.dxf.dimblk1 = 'ARCHTICK'
         new_dimstyle.dxf.dimblk2 = 'ARCHTICK'
-        
-        self.doc.header['$DIMSTYLE'] = 'CT-100'
+        self.doc.header['$DIMSTYLE'] = new_dimstyle_name
 
         
     def __load_text_type(self):
         
         text_styles = self.doc.styles
         # 定义新文字样式的名称
-        new_style_name = 'CT2025'
+        new_style_name = BasicDXF.TEXT_STYLE_NAME
         # 创建新的文字样式
         new_style = text_styles.new(new_style_name)
         # 设置文字样式的属性
         # 指定字体文件，例如 Arial 字体
-        new_style.dxf.font = 'xd-hzs.shx'
+        new_style.dxf.font = BasicDXF.TEXT_SHX
+        new_style.dxf.bigfont = BasicDXF.TEXT_BIG_SHX
         # 设置文字高度
         new_style.dxf.height = 0
         new_style.dxf.width = 0.7
+        # 修改当前选择的文字样式
+        self.doc.header['$TEXTSTYLE'] = new_style_name
         
-        self.doc.header['$TEXTSTYLE'] = 'CT2025'
+        
+        

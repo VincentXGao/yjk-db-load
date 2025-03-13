@@ -7,6 +7,7 @@ from CivilTools.YDBLoader.BuildingDefine import Beam,Column, Section
 from CivilTools.YDBLoader.BuildingDefine.Section import ShapeEnum
 from CivilTools.ReportGenerator import SeismicReport, DocTable
 from CivilTools.DXFGenerator import BasicDXF,CADLayer,CADColor,CADLineType
+from CivilTools.DXFGenerator.DrawingAttribs import DrawingAttribs
 
 class TestDXFGenerator(unittest.TestCase):
     def test_dxf_generator(self):
@@ -18,5 +19,5 @@ class TestDXFGenerator(unittest.TestCase):
             ]
         basic.init_layers(layer_list)
         basic.creat_test()
-        basic._add_dimension([500,500],[-500,500])
+        basic._add_dimension([500,500],[-500,500],DrawingAttribs("AA"))
         basic._save("testfiles/test_dxf.dxf")

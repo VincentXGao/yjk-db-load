@@ -1,4 +1,5 @@
-from .BasicDXF import BasicDXF,DrawingAttribs
+from .BasicDXF import BasicDXF
+from .DrawingAttribs import DrawingAttribs,PolylineAttribs
 from .LayerManager import DefaultLayers
 from CivilTools.Const import Concrete,ConcreteLevel
 
@@ -38,13 +39,17 @@ class FloorHeightTableDXF(BasicDXF):
     
     def export_dxf(self,path):       
         self.__draw_table_grid()
+        self.__draw_context()
         self._save(path)
 
     def __draw_table_grid(self):
         start_x = 0
         start_y = 0
         total_width = self.font_size * 20
-        grid_draw_attrib = DrawingAttribs(DefaultLayers.SYMBOL.name)
+        grid_draw_attrib = PolylineAttribs(DefaultLayers.SYMBOL.name)
         for _ in range(self.floor_num+1):
             self._add_horizental_line(start_x,start_y,total_width,grid_draw_attrib)
-            start_y -= self.font_size*2
+            start_y -= self.font_size*2\
+    
+    def __draw_context(self):
+        self._add_text("什么？？？",[300,-500])
