@@ -18,4 +18,5 @@ class TestDXFGenerator(unittest.TestCase):
             ]
         basic.init_layers(layer_list)
         basic.creat_test()
+        basic._add_dimension([500,500],[-500,500])
         basic._save("testfiles/test_dxf.dxf")

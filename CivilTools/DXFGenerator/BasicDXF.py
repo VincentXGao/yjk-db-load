@@ -36,6 +36,8 @@ class BasicDXF:
         self.__loaded_line_types = []
         self.__min_point = [inf,inf]
         self.__max_point = [-inf,-inf]
+        self.__load_text_type()
+        self.__load_dim_type()
         
     
     def init_layers(self, layer_list:List[CADLayer]):
@@ -52,6 +54,8 @@ class BasicDXF:
                 BasicDXF.line_type_patterns[my_layer.line_type]
             )
             temp_layer.dxf.linetype = my_layer.line_type.name
+            self.doc.header['$CLAYER'] = my_layer.name
+    
     
     def creat_test(self):
         self._add_polyline([[0,0],[5000,0],[5000,500]],DrawingAttribs("AA"))
@@ -73,12 +77,14 @@ class BasicDXF:
         self.__update_boundary(max_x,max_y)
         self.__update_boundary(min_x,min_y)
 
-    def add_circle(self,center_point:Iterable[float],radius:float,attribs:DrawingAttribs):
+    def _add_circle(self,center_point:Iterable[float],radius:float,attribs:DrawingAttribs):
         circle = self.model_space.add_circle(center_point,radius)
         circle.dxf.layer = attribs.layer
 
+    def _add_dimension(self, start_point:Iterable[float], end_point:Iterable[float]):
+        
+        dimension = self.model_space.add_linear_dim((0,0),start_point,end_point,dimstyle="CT-100")
 
-    
     def _save(self,path:str):
         self.__change_view()
         if not path.endswith(BasicDXF.file_extension):
@@ -88,6 +94,7 @@ class BasicDXF:
                 self.doc.saveas(path)
             except Exception:
                 path = path.replace(BasicDXF.file_extension,"1"+BasicDXF.file_extension)
+    
     def __change_view(self):
         if (inf in self.__max_point or -inf in self.__min_point):
             return
@@ -118,3 +125,47 @@ class BasicDXF:
         self.doc.linetypes.add(name,pattern)
         self.__loaded_line_types.append(name)
         
+    def __load_dim_type(self):
+        # 获取标注样式表
+        dimstyles = self.doc.dimstyles
+        # 定义新标注样式的名称
+        new_dimstyle_name = 'CT-100'
+        # 创建新的标注样式
+        new_dimstyle = dimstyles.new(new_dimstyle_name)
+        # 设置标注文字样式
+        new_dimstyle.dxf.dimtxsty = 'CT2025'
+        # 设置标注文字高度
+        new_dimstyle.dxf.dimtxt = 2.5
+        # 设置箭头大小
+        new_dimstyle.dxf.dimasz = 1
+        # 设置标注线超出尺寸界线的长度
+        new_dimstyle.dxf.dimexo = 0.625
+        # 设置尺寸界线起点偏移量
+        new_dimstyle.dxf.dimse1 = 0.625
+        #  设置全局比例
+        new_dimstyle.dxf.dimscale = 100
+        # 保留至整数
+        new_dimstyle.dxf.dimrnd = 1
+        # 改为建筑箭头
+        new_dimstyle.dxf.dimblk = 'ARCHTICK'
+        new_dimstyle.dxf.dimblk1 = 'ARCHTICK'
+        new_dimstyle.dxf.dimblk2 = 'ARCHTICK'
+        
+        self.doc.header['$DIMSTYLE'] = 'CT-100'
+
+        
+    def __load_text_type(self):
+        
+        text_styles = self.doc.styles
+        # 定义新文字样式的名称
+        new_style_name = 'CT2025'
+        # 创建新的文字样式
+        new_style = text_styles.new(new_style_name)
+        # 设置文字样式的属性
+        # 指定字体文件，例如 Arial 字体
+        new_style.dxf.font = 'xd-hzs.shx'
+        # 设置文字高度
+        new_style.dxf.height = 0
+        new_style.dxf.width = 0.7
+        
+        self.doc.header['$TEXTSTYLE'] = 'CT2025'
