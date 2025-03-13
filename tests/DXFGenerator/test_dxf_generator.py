@@ -18,4 +18,4 @@ class TestDXFGenerator(unittest.TestCase):
             ]
         basic.init_layers(layer_list)
         basic.creat_test()
-        basic.save("testfiles/test_dxf.dxf")
+        basic._save("testfiles/test_dxf.dxf")

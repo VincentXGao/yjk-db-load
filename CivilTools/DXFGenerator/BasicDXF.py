@@ -8,7 +8,7 @@ class DrawingAttribs:
     def __init__(self,
                  layer:str,
                  color_index:int=256,
-                 close:bool=True,
+                 close:bool=False,
         ):
         self.layer = layer
         self.color_index = color_index
@@ -34,8 +34,8 @@ class BasicDXF:
         self.doc = ezdxf.new(BasicDXF.DXF2007)
         self.model_space = self.doc.modelspace()
         self.__loaded_line_types = []
-        self.__min_point = (inf,inf)
-        self.__max_point = (-inf,-inf)
+        self.__min_point = [inf,inf]
+        self.__max_point = [-inf,-inf]
         
     
     def init_layers(self, layer_list:List[CADLayer]):
@@ -54,9 +54,15 @@ class BasicDXF:
             temp_layer.dxf.linetype = my_layer.line_type.name
     
     def creat_test(self):
-        self.add_polyline([[0,0],[5000,0],[5000,500]],DrawingAttribs("AA"))
+        self._add_polyline([[0,0],[5000,0],[5000,500]],DrawingAttribs("AA"))
 
-    def add_polyline(self,points:Iterable[Tuple[float, float]], attribs:DrawingAttribs):
+    def _add_horizental_line(self, start_x, start_y, length:float,attribs:DrawingAttribs):
+        self._add_polyline([[start_x,start_y],[start_x+length,start_y]],attribs)
+        
+    def _add_vertical_line(self, start_x, start_y, length:float,attribs:DrawingAttribs):
+        self._add_polyline([[start_x,start_y],[start_x,start_y+length]],attribs)
+
+    def _add_polyline(self,points:Iterable[Tuple[float, float]], attribs:DrawingAttribs):
         polyline = self.model_space.add_lwpolyline(points,close=attribs.close)
         polyline.dxf.layer = attribs.layer
 
@@ -73,7 +79,7 @@ class BasicDXF:
 
 
     
-    def save(self,path:str):
+    def _save(self,path:str):
         self.__change_view()
         if not path.endswith(BasicDXF.file_extension):
             path += BasicDXF.file_extension
@@ -83,12 +89,17 @@ class BasicDXF:
             except Exception:
                 path = path.replace(BasicDXF.file_extension,"1"+BasicDXF.file_extension)
     def __change_view(self):
+        if (inf in self.__max_point or -inf in self.__min_point):
+            return
+        
         y_range = self.__max_point[1] - self.__min_point[1]
         x_range = self.__max_point[0] - self.__min_point[0]
 
         y_middle = (self.__max_point[1] + self.__min_point[1])/2
-        x_middle = (self.__max_point[0] + self.__min_point[0])/2
-        self.doc.set_modelspace_vport(max(x_range,y_range),(x_middle,y_middle))
+        # 为了使得内容靠右些，避免左侧panel占位的视觉影响
+        x_middle = (self.__max_point[0] + self.__min_point[0]*3)/4
+        # 乘以1.1的系数，增加了一些margin
+        self.doc.set_modelspace_vport(max(x_range*1.1,y_range*1.1),(x_middle,y_middle))
     
     def __update_boundary(self, x, y):
         temp_x1 = self.__min_point[0]
