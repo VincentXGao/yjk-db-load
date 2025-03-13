@@ -1,5 +1,5 @@
 from .BasicDXF import BasicDXF
-from .DrawingAttribs import DrawingAttribs,PolylineAttribs
+from .DrawingAttribs import DrawingAttribs,PolylineAttribs,TextAttribs
 from .LayerManager import DefaultLayers
 from CivilTools.Const import Concrete,ConcreteLevel
 
@@ -52,4 +52,4 @@ class FloorHeightTableDXF(BasicDXF):
             start_y -= self.font_size*2\
     
     def __draw_context(self):
-        self._add_text("什么？？？",[300,-500])
+        self._add_text("什么？？？",[300,-500],TextAttribs(DefaultLayers.TEXT.name))

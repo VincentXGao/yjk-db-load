@@ -1,9 +1,12 @@
 import ezdxf
+from ezdxf.enums import TextEntityAlignment
 import warnings
 from math import inf
 from typing import List, Iterable, Tuple
 from .LayerManager import CADLayer, CADColor,CADLineType
-from .DrawingAttribs import DrawingAttribs,PolylineAttribs
+from .DrawingAttribs import DrawingAttribs,PolylineAttribs,TextAttribs
+from CivilTools.Const import CADConst
+
 
 
 class BasicDXF:
@@ -95,11 +98,11 @@ class BasicDXF:
         
         
         
-    def _add_text(self, context:str, insert_point):
-        
-        text = self.model_space.add_text(context,height=300)
-        text.dxf.insert = insert_point
+    def _add_text(self, context:str, insert_point, attribs:TextAttribs):
+        text = self.model_space.add_text(context,height=attribs.text_height)
         text.dxf.style = BasicDXF.TEXT_STYLE_NAME
+        text.set_placement(insert_point,align=attribs.text_align)
+        
         
         
     
