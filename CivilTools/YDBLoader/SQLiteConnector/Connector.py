@@ -2,16 +2,19 @@ from typing import List
 import sqlite3
 import os
 
+
 class Connector:
 
     def __init__(self, file_path=None):
         self.set_db_file(file_path)
         self.connection = None
         self.cursor = None
-        
+
     def set_db_file(self, file_path):
         if file_path != None and not os.path.exists(file_path):
-            raise AttributeError("The file_path is not existed, please check your file path. ")
+            raise AttributeError(
+                "The file_path is not existed, please check your file path. "
+            )
         self.__file_path = file_path
 
     def connect(self):
@@ -19,13 +22,15 @@ class Connector:
         建立与 SQLite 数据库的连接
         """
         if self.__file_path == None:
-            raise AttributeError("The file_path is None, you should set db file path before connect. Try the method [set_db_file]. ")
+            raise AttributeError(
+                "The file_path is None, you should set db file path before connect. Try the method [set_db_file]. "
+            )
         try:
             self.connection = sqlite3.connect(self.__file_path)
             self.cursor = self.connection.cursor()
         except sqlite3.Error as e:
             print(f"连接数据库时出错: {e}")
-       
+
     def extract_table(self, table_name):
         """
         从指定的表中提取数据
@@ -42,7 +47,7 @@ class Connector:
             print(f"从表 {table_name} 提取数据时出错: {e}")
             return []
 
-    def extract_table_by_columns(self, table_name, column_list:List[str]):
+    def extract_table_by_columns(self, table_name, column_list: List[str]):
         """
         从指定的表中提取数据
         :param table_name: 要提取数据的表名
@@ -60,12 +65,15 @@ class Connector:
             print(f"从表 {table_name} 提取数据时出错: {e}")
             return []
 
-    def is_table_in_db(self, table_name:str):
-        
+    def is_table_in_db(self, table_name: str):
+
         if self.cursor is None:
             self.connect()
         try:
-            self.cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name=?", (table_name,))
+            self.cursor.execute(
+                "SELECT name FROM sqlite_master WHERE type='table' AND name=?",
+                (table_name,),
+            )
             result = self.cursor.fetchone()
             return result
         except sqlite3.Error as e:

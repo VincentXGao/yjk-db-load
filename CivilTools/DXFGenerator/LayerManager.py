@@ -1,5 +1,6 @@
 from enum import Enum
 
+
 class CADColor(Enum):
     Red = 1
     Yellow = 2
@@ -10,7 +11,8 @@ class CADColor(Enum):
     White = 7
     Gray = 8
     LightGray = 9
-    
+
+
 class CADLineType(Enum):
     Continuous = 1
     DASHED = 2
@@ -19,13 +21,17 @@ class CADLineType(Enum):
 
 
 class CADLayer:
-    def __init__(self,name:str,color:CADColor,line_type:CADLineType=CADLineType.Continuous):
+    def __init__(
+        self,
+        name: str,
+        color: CADColor,
+        line_type: CADLineType = CADLineType.Continuous,
+    ):
         self.name = name
         self.color = color
         self.line_type = line_type
 
 
 class DefaultLayers:
-    TEXT = CADLayer("0S-TEXT",CADColor.Cyan)
-    SYMBOL = CADLayer("0S-SYMB",CADColor.Red)
-    
+    TEXT = CADLayer("0S-TEXT", CADColor.Cyan)
+    SYMBOL = CADLayer("0S-SYMB", CADColor.Red)

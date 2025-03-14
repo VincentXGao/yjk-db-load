@@ -6,6 +6,7 @@
             "type": "debugpy",
             "request": "launch",
             "module": "pytest",
+            "args": [".\\tests\\DXFGenerator\\test_floor_height_table_dxf.py"],
             "console": "integratedTerminal"
         }
     ]

@@ -1,5 +1,3 @@
-
-
 class DocParagraph:
     def init_attr(self):
         self.style = None
@@ -11,7 +9,7 @@ class DocParagraph:
         self.is_bold = None
         self.alignment = None
         self.par_level = None
-    
-    def __init__(self,context):
+
+    def __init__(self, context):
         self.context = context
         self.init_attr()
