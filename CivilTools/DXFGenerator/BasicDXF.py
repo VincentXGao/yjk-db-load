@@ -127,6 +127,8 @@ class BasicDXF:
         text.dxf.style = BasicDXF.TEXT_STYLE_NAME
         # width就是宽度因子系数
         text.dxf.width = attribs.text_width_factor
+        text.dxf.layer = attribs.layer
+        text.dxf.color = attribs.color_index
         text.set_placement(insert_point, align=attribs.text_align)
         max_x = insert_point[0]
         min_x = insert_point[0]
