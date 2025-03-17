@@ -6,7 +6,7 @@
             "type": "debugpy",
             "request": "launch",
             "module": "pytest",
-            "args": [".\\tests\\DXFGenerator\\test_floor_height_table_dxf.py"],
+            "args": [".\\tests\\reportGenerator\\test_seismic_report.py"],
             "console": "integratedTerminal"
         }
     ]

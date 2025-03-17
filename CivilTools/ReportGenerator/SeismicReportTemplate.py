@@ -28,7 +28,7 @@ class SRTemplate:
     SEISMIC_CHAPTER_TITLE = ChapterTemplate(
         title=lambda index: f"{index}.小震弹性分析的主要结果",
         paragraph=lambda index, yjk_version: [
-            f"本模型弹性计算分析和构件设计软件采用YJK{yjk_version}，结构计算模型如图{index}.0.1所示，结构计算假定如下：",
+            f"本模型弹性计算分析和构件设计软件采用YJK-{yjk_version}，结构计算模型如图{index}.0.1所示，结构计算假定如下：",
             "1. *{XXXX作为上部结构的嵌固端；}",
             "2. 计算结构整体指标按刚性板假定，构件验算时按弹性板设计。",
             "*{(这里需要一张图片！)}",
@@ -82,7 +82,7 @@ class SRTemplate:
         paragraph=lambda index, sub_index, **kwargs: [
             f"本塔楼结构重力荷载代表值为{kwargs["total_mass"]}吨，"
             + f"地上部分的结构楼板面积为{kwargs["total_area"]}平方米，"
-            + f"按结构楼板折算的重量约为{kwargs["average_load"]:.2f}kN/m2。"
+            + f"按结构楼板折算的重量约为{kwargs["average_load"]}kN/m^{{2}}。"
             + f"其中恒载及活载详情见表{index}.{sub_index}.1。",
         ],
         table=lambda index, sub_index: f"表{index}.{sub_index}.1 结构质量组成",
@@ -95,21 +95,21 @@ class SRTemplate:
             ],
             [
                 "恒载",
-                "-",
-                "-",
-                "-",
+                f"{kwargs['dead_mass']}",
+                f"{kwargs['dead_percentage']}",
+                f"{kwargs['dead_average']}",
             ],
             [
                 "活载*0.5",
-                "-",
-                "-",
-                "-",
+                f"{kwargs['live_mass']}",
+                f"{kwargs['live_percentage']}",
+                f"{kwargs['live_average']}",
             ],
             [
                 "总质量(D+0.5L)",
-                "-",
-                "-",
-                "-",
+                f"{kwargs['total_mass']}",
+                f"{kwargs['total_percentage']}",
+                f"{kwargs['total_average']}",
             ],
         ],
     )

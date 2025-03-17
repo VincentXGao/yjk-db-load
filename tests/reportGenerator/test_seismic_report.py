@@ -8,11 +8,12 @@ sys.path.append(
 from CivilTools.YDBLoader import YDBLoader
 from CivilTools.YDBLoader.BuildingDefine import Beam, Column, Section
 from CivilTools.YDBLoader.BuildingDefine.Section import ShapeEnum
-from CivilTools.ReportGenerator import SeismicReport
+from CivilTools.ReportGenerator import SeismicReport, SeismicReportData
 
 
 class TestSeismicReport(unittest.TestCase):
     def test_generate_paper(self):
-        report = SeismicReport()
+        data = SeismicReportData("React项目前端")
+        report = SeismicReport(data)
         report.creat_doc()
         report.save("testfiles/MyReport.docx")
