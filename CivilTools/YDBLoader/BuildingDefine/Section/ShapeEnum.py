@@ -1,5 +1,7 @@
 from enum import Enum
 import warnings
+
+
 class ShapeEnum(Enum):
     # 矩形
     Rect = 1
@@ -25,18 +27,16 @@ class ShapeEnum(Enum):
     BoxSRC = 14
     # 十字劲
     CrossSRC = 15
-    
+
     # 未知截面均归于这个类别
     UnKnown = 999
-    
+
     @classmethod
-    def ConvertToShapeEnum(cls,index:int):
-        try: 
+    def ConvertToShapeEnum(cls, index: int):
+        try:
             return (ShapeEnum)(index)
         except ValueError:
-            warnings.warn(f"Shape kind ${index} is not supported yet. It will be converted to UnKnown.")
+            warnings.warn(
+                f"Shape kind ${index} is not supported yet. It will be converted to UnKnown."
+            )
             return ShapeEnum.UnKnown
-            
-    
-    
-    

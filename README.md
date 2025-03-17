@@ -15,11 +15,9 @@
 
 The latest stable release (and required dependencies) can be installed from PyPI:
 
-<div style=" border: 1px solid #ff0000; padding: 10px; border-radius: 5px; margin-bottom: 10px">
-    <strong>注意：</strong> pip时使用的模块的名字是 <strong>civil-tools-v </strong>！
-    <br>
-    <strong>Notice：</strong> The module name for pip is <strong>civil-tools-v</strong> !
-</div>
+<strong>注意：</strong> pip 时使用的模块的名字是 <strong>civil-tools-v </strong>！
+<br>
+<strong>Notice：</strong> The module name for pip is <strong>civil-tools-v</strong> !
 
 ```shell
 pip install civil-tools-v
@@ -84,7 +82,27 @@ Joint(id:1014):[x:27054.9286,y:18061.9286]:stdFlrId:1001
 
 这是一个用于绘制各类结构相关图纸的工具，包括各类节点详图、大样，甚至整层楼的模板图等等。
 
-但是这个模块暂时处于待开发状态....
+This is a tool used to draw various structural related drawings, including detailed drawings, large samples, and even template drawings of the entire floor.
+
+你可以轻易地从`CivilTools.DXFGenerator`中导出并使用它：
+
+```python
+from CivilTools.DXFGenerator import FloorHeightTableDXF
+
+dxf = FloorHeightTableDXF(10,2,-500)
+
+dxf.font_size = 400
+dxf.set_table_title("XXX项目X号楼")
+dxf.set_embeding_floor("F3")
+dxf.export_dxf("test.dxf")
+dxf
+```
+
+如果你在 Jupyter 中运行，则会看到如下的渲染示意图。可以看到层高表被自动生成出来，包括嵌固层等信息。与此同时，相应的 dxf 也已经保存在当前目录下的 test.dxf 文件中。
+
+If you run it in Jupyter, you will see the following rendering diagram. The floor height table is automatically generated, including information such as the embedded floor. At the same time, the corresponding DXF has also been saved in the test.dxf file in the current directory.
+
+![alt text](readme_asset/image.png)
 
 <a id="ReportGenerator"></a>
 
@@ -98,7 +116,6 @@ Joint(id:1014):[x:27054.9286,y:18061.9286]:stdFlrId:1001
 你可以轻易地从`CivilTools.ReportGenerator`中导出并使用它：
 
 ```python
-
 from CivilTools.ReportGenerator import SeismicReport
 
 report = SeismicReport()
@@ -108,7 +125,6 @@ report.save("seismic_review_report.docx")
 ```
 
 ```python
-
 from CivilTools.ReportGenerator import StairCalculationReport
 
 report = StairCalculationReport()

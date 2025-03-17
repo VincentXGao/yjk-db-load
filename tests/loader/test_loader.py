@@ -1,7 +1,10 @@
 import unittest
 import sys
 import os
-sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+
+sys.path.append(
+    os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+)
 from CivilTools.YDBLoader import YDBLoader
 from CivilTools.YDBLoader.BuildingDefine import Beam
 from CivilTools.YDBLoader.SQLiteConnector import Connector
@@ -20,9 +23,11 @@ class TestYDBLoader(unittest.TestCase):
         connector = Connector()
         with self.assertRaises(AttributeError) as context:
             connector.set_db_file(file_path_not_exist)
-        self.assertEqual(str(context.exception),"The file_path is not existed, please check your file path. ")
+        self.assertEqual(
+            str(context.exception),
+            "The file_path is not existed, please check your file path. ",
+        )
 
-    
     def test_extract_seismic_result(self):
         file_path = "testfiles/dsnModel_yxy.ydb"
         model = YDBLoader(file_path)

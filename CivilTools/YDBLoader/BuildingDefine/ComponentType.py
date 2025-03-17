@@ -1,5 +1,6 @@
 from enum import Enum
 
+
 class ComponentType(Enum):
     Beam = 1
     Column = 2
@@ -7,4 +8,3 @@ class ComponentType(Enum):
     Slab = 4
     Brace = 5
     SlabHole = 6
-    
