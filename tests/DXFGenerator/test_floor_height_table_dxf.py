@@ -21,5 +21,6 @@ from CivilTools.DXFGenerator import (
 class TestFloorHeightTableDXFGenerator(unittest.TestCase):
     def test_floor_height_table_generator(self):
         floor_height_table = FloorHeightTableDXF(15, 3, 0)
-        floor_height_table.set_table_title("XX项目8号楼层高表")
+        floor_height_table.set_table_title("XX项目X号楼层高表")
+        floor_height_table.set_embeding_floor("F1")
         floor_height_table.export_dxf("testfiles/floor_height.dxf")

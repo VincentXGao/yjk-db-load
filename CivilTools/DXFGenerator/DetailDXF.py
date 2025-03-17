@@ -51,6 +51,7 @@ class FloorInformation:
         self.beam_steel_mat = beam_steel_mat
         self.column_steel_mat = column_steel_mat
         self.brace_steel_mat = brace_steel_mat
+        self.is_embedded = False
 
     def get_attribute_by_name(self, attrib_name: str):
         if "楼层号" in attrib_name:
@@ -100,6 +101,8 @@ class FloorHeightTableDXF(BasicDXF):
         self.floors = self.__create_floors()
         self.__font_size = font_size
         self.__table_title = None
+        self.has_embeded_floor = False
+        self.embeded_floor = None
         self.insert_point = [0, 0]
 
         for key, value in default_floor_height_table_attribs.items():
@@ -124,6 +127,7 @@ class FloorHeightTableDXF(BasicDXF):
         self.__draw_table_grid()
         self.__draw_table_column_title()
         self.__draw_context()
+        self.__draw_supplement_info()
         self._save(path)
 
     def set_table_title(self, title: str):
@@ -132,8 +136,19 @@ class FloorHeightTableDXF(BasicDXF):
     def set_font_size(self, font_size: float):
         self.__font_size = font_size
 
-    def set_embeding_floor(self):
-        return NotImplemented
+    def set_embeding_floor(self, floor_name: str | None):
+        """Use None to reset embeded floor."""
+        if floor_name == None:
+            self.has_embeded_floor = False
+            self.embeded_floor = None
+            return
+        for floor in self.floors:
+            if floor.floor_name == floor_name:
+                floor.is_embedded = True
+                self.has_embeded_floor = True
+                self.embeded_floor = floor
+                return
+        raise ValueError(f"No floor named as {floor_name}")
 
     def __analysis_table_columns(self):
         self.__columns = []
@@ -202,6 +217,14 @@ class FloorHeightTableDXF(BasicDXF):
                     start_x, start_y, total_width, grid_draw_attrib
                 )
             start_y -= font_factor * 2
+            if (
+                i - 2 >= 0
+                and i - 2 < self.floor_num
+                and self.floors[::-1][i - 2].is_embedded
+            ):
+                self._add_horizental_line(
+                    start_x, start_y + font_factor * 0.2, total_width, grid_draw_attrib
+                )
         start_y = 0
         for i in range(len(self.__columns) + 1):
             if i <= first_part_column_num or i == len(self.__columns):
@@ -223,6 +246,13 @@ class FloorHeightTableDXF(BasicDXF):
         font_factor = self.__font_size
         start_x = self.insert_point[0]
         start_y = self.insert_point[1]
+
+        table_column_title_attrib = TextAttribs(
+            DefaultLayers.TEXT.name,
+            text_height=font_factor,
+            text_align=TextEntityAlignment.MIDDLE_CENTER,
+        )
+
         for i in range(len(self.__columns)):
             temp_string = self.__columns[i]
             temp_x = (
@@ -236,12 +266,18 @@ class FloorHeightTableDXF(BasicDXF):
             self._add_text(
                 temp_string,
                 [start_x + temp_x, start_y + temp_y],
-                TextAttribs(
-                    DefaultLayers.TEXT.name,
-                    text_height=font_factor,
-                    text_align=TextEntityAlignment.MIDDLE_CENTER,
-                ),
+                table_column_title_attrib,
             )
+        temp_x = (
+            (
+                sum(self.__column_widths)
+                + sum(self.__column_widths[: self.__first_part_column_num])
+            )
+            / 2.0
+            * font_factor
+        )
+        temp_y = -font_factor * 1
+        self._add_text("混凝土结构", [temp_x, temp_y], table_column_title_attrib)
 
     def __draw_context(self):
         font_factor = self.__font_size
@@ -266,6 +302,23 @@ class FloorHeightTableDXF(BasicDXF):
                         text_align=TextEntityAlignment.MIDDLE_RIGHT,
                     ),
                 )
+
+    def __draw_supplement_info(self):
+        if not self.has_embeded_floor:
+            return
+        font_factor = self.__font_size
+        temp_x = self.insert_point[0]
+        temp_y = self.insert_point[1] - font_factor * (self.floor_num + 2.5) * 2
+        table_supplement_info_attrib = TextAttribs(
+            DefaultLayers.TEXT.name,
+            text_height=font_factor,
+            text_align=TextEntityAlignment.MIDDLE_LEFT,
+        )
+        self._add_text(
+            f"上部嵌固层：{self.embeded_floor.floor_name}，标高：{self.embeded_floor.struct_elevation}。",
+            [temp_x, temp_y],
+            table_supplement_info_attrib,
+        )
 
     def __draw_embeding_dimension(self):
         return NotImplemented
