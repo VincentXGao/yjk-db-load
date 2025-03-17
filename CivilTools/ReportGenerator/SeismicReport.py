@@ -9,7 +9,7 @@ from .DocPicture import DocPicture
 from .SeismicReportTemplate import SRTemplate
 from .UtilFunctions import add_comma_in_num_str
 
-from ..YDBLoader.BuildingDefine import MassResult
+from ..YDBLoader.BuildingDefine import MassResult, Period
 
 
 class SeismicReportData:
@@ -17,11 +17,13 @@ class SeismicReportData:
         self.project_name = name
         self.yjk_version = None
         self.mass_result = None
+        self.period = None
         self.__mock_data()
 
     def __mock_data(self):
         self.yjk_version = "6.0.0"
         self.mass_result = MassResult.mock_data()
+        self.period = Period.mock_data()
 
     @property
     def is_valid(self):
@@ -170,6 +172,13 @@ class SeismicReport(BasicGenerator):
     def __add_period(self, chapter_index: int, sub_index: int):
         current_context = SRTemplate.PERIOD
         self.__insert_title_par_2(current_context, chapter_index, sub_index)
+
+        paras = current_context.paragraph(
+            self.all_data.period, chapter_index, sub_index
+        )
+        self.__insert_normal_para(paras[0])
+
+        self.__insert_normal_para(paras[1])
 
         return sub_index + 1
 

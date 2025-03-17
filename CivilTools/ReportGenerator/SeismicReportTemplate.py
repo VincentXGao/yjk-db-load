@@ -1,4 +1,5 @@
 from typing import List
+from ..YDBLoader.BuildingDefine import Period
 
 
 class ChapterTemplate:
@@ -17,6 +18,18 @@ class ChapterTemplate:
         self.table = table
         self.picture = picture
         self.table_context = table_context
+
+
+def period_para_analysis(period_result: Period, chapter_index: int, sub_index: int):
+    type_1 = period_result.periods[0].direction
+    type_2 = period_result.periods[1].direction
+    type_3 = period_result.periods[2].direction
+    first_para = ""
+    second_para = ""
+    if type_1.upper() == "X" and type_2.upper() == "Y" and type_3.upper() == "Z":
+        first_para = "表8.3.1为强制刚性楼板假定下计算得到的结构模态信息，前两阶振型分别为Y、X向平动振型，第三阶振型为Z向扭转振型；结构第一扭转周期与第一、第二平动周期的比值分别为0.85和0.96。结构前三振型如图8.3.1所示。"
+
+    return [first_para, second_para]
 
 
 class SRTemplate:
@@ -117,11 +130,7 @@ class SRTemplate:
     # 振型与周期
     PERIOD = ChapterTemplate(
         title=lambda index, sub_index: f"{index}.{sub_index} 振型与周期",
-        paragraph=lambda index, sub_index, **kwargs: [
-            f"表{index}.{sub_index}.1为强制刚性楼板假定下计算得到的结构模态信息，"
-            + f"结构前三振型如图{index}.{sub_index}.1所示。",
-            "从上表可以看出，X、Y方向平动的质量参与系数均大于90%，满足规范要求。",
-        ],
+        paragraph=period_para_analysis,
         table=lambda index, sub_index: f"表{index}.{sub_index}.1 结构模态信息",
         table_context=lambda **kwargs: [
             [

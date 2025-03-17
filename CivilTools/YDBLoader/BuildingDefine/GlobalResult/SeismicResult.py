@@ -28,6 +28,12 @@ class SinglePeriod:
         self.coeff_x = coeff_x
         self.coeff_y = coeff_y
         self.coeff_z = coeff_z
+        if coeff_x >= coeff_y and coeff_x >= coeff_z:
+            self.direction = "X"
+        elif coeff_y >= coeff_x and coeff_y >= coeff_z:
+            self.direction = "Y"
+        else:
+            self.direction = "Z"
         self.mass_participate_x = mass_particpate_x
         self.mass_participate_y = mass_particpate_y
         self.mass_participate_z = mass_particpate_z
@@ -41,6 +47,8 @@ class SinglePeriod:
 
 class Period:
     def __init__(self, periods: List[SinglePeriod], model_type=None):
+        if len(periods) < 3:
+            raise ValueError("At least three periods is needed.")
         self.periods = periods
 
     def __str__(self):
@@ -54,6 +62,67 @@ class Period:
 
     def __repr__(self):
         return self.__str__()
+
+    @classmethod
+    def mock_data(
+        cls, order: str = "xyz", num: int = 7, mass_participate: float = 0.95
+    ):
+        single_period_list = []
+        single_period_list.append(
+            SinglePeriod(
+                1,
+                2.5,
+                0,
+                order[0] == "x",
+                order[0] == "y",
+                order[0] == "z",
+                0.1,
+                0.1,
+                0.1,
+            )
+        )
+        single_period_list.append(
+            SinglePeriod(
+                2,
+                2.0,
+                0,
+                order[1] == "x",
+                order[1] == "y",
+                order[1] == "z",
+                0.2,
+                0.2,
+                0.2,
+            )
+        )
+        single_period_list.append(
+            SinglePeriod(
+                3,
+                1.5,
+                0,
+                order[2] == "x",
+                order[2] == "y",
+                order[2] == "z",
+                0.3,
+                0.3,
+                0.3,
+            )
+        )
+
+        for i in range(num - 3):
+            single_period_list.append(
+                SinglePeriod(
+                    i + 4,
+                    0.5 - 0.01 * i,
+                    0,
+                    1,
+                    0,
+                    0,
+                    mass_participate,
+                    mass_participate,
+                    mass_participate,
+                )
+            )
+        return Period(single_period_list)
 
 
 class ValuePeer:
