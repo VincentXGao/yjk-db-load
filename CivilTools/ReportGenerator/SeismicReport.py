@@ -16,6 +16,7 @@ from ..FigureGenerator.BasicPltPlotter import BasicPltPlotter, SeismicPlotter
 class SeismicReportData:
     def __init__(self, name: str | None = None):
         self.project_name = name
+        self.floor_num = 8
         self.yjk_version = None
         self.mass_result = None
         self.period = None
@@ -252,6 +253,36 @@ class SeismicReport(BasicGenerator):
         current_context = SRTemplate.SHEAR_AND_MOMENT
         self.__insert_title_par_2(current_context, chapter_index, sub_index)
 
+        para = current_context.paragraph(chapter_index, sub_index)
+        self.__insert_normal_para(para)
+
+        table_title = current_context.table(chapter_index, sub_index)
+        self.__insert_table_figure_title(table_title)
+        table = DocTable(6, 4)
+        table.merge_cells(0, 0, 1, 1)
+        table.merge_cells(0, 2, 0, 3)
+        table.merge_cells(2, 0, 3, 0)
+        table.merge_cells(4, 0, 5, 0)
+        table.set_table_context(current_context.table_context())
+        self.add_table(table)
+
+        figure = SeismicPlotter()
+        figure.test_plot()
+        stream = figure.save_to_stream()
+        picture = DocPicture(stream, 2)
+        self.add_picture(picture)
+
+        figure_titles = current_context.picture(chapter_index, sub_index)
+        self.__insert_table_figure_title(figure_titles[0])
+
+        figure = SeismicPlotter()
+        figure.test_plot()
+        stream = figure.save_to_stream()
+        picture = DocPicture(stream, 2)
+        self.add_picture(picture)
+
+        self.__insert_table_figure_title(figure_titles[1])
+
         return sub_index + 1
 
     def __add_horizental_moment_ratio_for_column(
@@ -259,6 +290,38 @@ class SeismicReport(BasicGenerator):
     ):
         current_context = SRTemplate.HORIZENTAL_MOMENT_RATIO_FOR_COLUMN
         self.__insert_title_par_2(current_context, chapter_index, sub_index)
+
+        paras = current_context.paragraph(chapter_index, sub_index)
+        self.__insert_normal_para(paras[0])
+        self.__insert_normal_para(paras[1])
+
+        figure = SeismicPlotter()
+        figure.test_plot()
+        stream = figure.save_to_stream()
+        picture = DocPicture(stream, 2)
+        self.add_picture(picture)
+
+        figure_title = current_context.picture(chapter_index, sub_index)
+        self.__insert_table_figure_title(figure_title)
+
+        table_titles = current_context.table(chapter_index, sub_index)
+        self.__insert_table_figure_title(table_titles[0])
+        row_num = self.all_data.floor_num + 1
+        table = DocTable(row_num, 5)
+        table_context = current_context.table_context()
+        for _ in range(self.all_data.floor_num):
+            table_context.append(["--"] * 5)
+        table.set_table_context(table_context)
+        self.add_table(table)
+
+        self.__insert_table_figure_title(table_titles[1])
+        row_num = self.all_data.floor_num + 1
+        table = DocTable(row_num, 5)
+        table_context = current_context.table_context()
+        for _ in range(self.all_data.floor_num):
+            table_context.append(["--"] * 5)
+        table.set_table_context(table_context)
+        self.add_table(table)
 
         return sub_index + 1
 

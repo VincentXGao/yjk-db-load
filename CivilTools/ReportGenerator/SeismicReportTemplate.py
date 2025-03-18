@@ -98,6 +98,37 @@ def shear_mass_ratio(chapter_index: int, sub_index: int):
     return para_context
 
 
+def shear_and_moment(chapter_index: int, sub_index: int):
+    para = f"塔楼基底剪力和基底倾覆力矩见下表{chapter_index}.{sub_index}.1。"
+    para += f"图{chapter_index}.{sub_index}.1为50年重现期下的风荷载和小震作用下的楼层剪力分布，"
+    para += f"图{chapter_index}.{sub_index}.2为50年重现期下的风荷载和小震作用下的倾覆弯矩分布。"
+    para += "计算结果显示，"
+    para += "在X、Y两个方向，小震作用下的楼层剪力和倾覆弯矩均远大于50年重现期下的风荷载作用，"
+    para += "也表明在结构刚度和变形方面，小震起控制作用。"
+
+    return para
+
+
+def horizental_moment_ratio_for_column(chapter_index: int, sub_index: int):
+    para1 = f"图{chapter_index}.{sub_index}.1为结构在双向水平地震作用下，各层框架柱分担的倾覆力矩与各层结构总倾覆力矩的比值（倾覆力矩分担比），"
+    para1 += f"表{chapter_index}.{sub_index}.1与表{chapter_index}.{sub_index}.2为结构分别在双向水平地震作用下，各层框架柱分担的剪力、倾覆力矩及其所占比例的具体数值。"
+
+    para2 = "结果表明：在规定水平力下，结构底层框架部分承受的地震倾覆力矩分担比"
+    para2 += "在X向和Y向分别为54.8%和48.0%。底层倾覆力矩分担比大于50%，"
+    para2 += "按照《高规》第8.1.3条第3款之规定，本工程应按照框架-剪力墙结构进行设计，"
+    para2 += "其最大适用高度可比框架结构适当增加，框架部分的抗震等级和轴压比限值宜按框架结构的规定采用。"
+
+    return [para1, para2]
+
+
+def disp_and_drift(chapter_index: int, sub_index: int):
+    para = f"结构在小震与风荷载作用下的最大层间位移角如表{chapter_index}.{sub_index}.1和图{chapter_index}.{sub_index}.1所示。"
+    para += "各工况下各楼层位移角均小于规范限值1/800的要求。"
+    para += "此外，风荷载下各层层间位移角小于小震作用，小震起控制作用。"
+
+    return para
+
+
 class SRTemplate:
     # 前情提要
     FIRST_INFO = (
@@ -242,89 +273,77 @@ class SRTemplate:
     # 楼层剪力及倾覆力矩
     SHEAR_AND_MOMENT = ChapterTemplate(
         title=lambda index, sub_index: f"{index}.{sub_index} 楼层剪力及倾覆力矩",
-        paragraph=lambda index, sub_index, **kwargs: [
-            f"本塔楼结构重力荷载代表值为{kwargs["total_mass"]}吨，"
-            + f"地上部分的结构楼板面积为{kwargs["total_area"]}平方米，"
-            + f"按结构楼板折算的重量约为{kwargs["average_load"]:.2f}kN/m2。"
-            + f"其中恒载及活载详情见表{index}.{sub_index}.1。",
-        ],
-        table=lambda index, sub_index: f"表{index}.{sub_index}.1 结构质量组成",
+        paragraph=shear_and_moment,
+        table=lambda index, sub_index: f"表{index}.{sub_index}.1 结构基底总剪力和倾覆力矩",
         table_context=lambda **kwargs: [
             [
-                "类别",
-                "数值(t)",
-                "占比",
-                "单位楼板面积重量\r（kN/m^{2})",
+                "--",
+                "--",
+                "YJK",
+                "YJK",
             ],
             [
-                "恒载",
-                "-",
+                "--",
+                "项目",
+                X_DIRECTION,
+                Y_DIRECTION,
+            ],
+            [
+                "风荷载",
+                "基底剪力(kN)",
                 "-",
                 "-",
             ],
             [
-                "活载*0.5",
-                "-",
+                "风荷载",
+                "基地倾覆力矩(MN·m)",
                 "-",
                 "-",
             ],
             [
-                "总质量(D+0.5L)",
-                "-",
+                "多遇地震",
+                "基底剪力(kN)",
                 "-",
                 "-",
             ],
+            [
+                "多遇地震",
+                "基地倾覆力矩(MN·m)",
+                "-",
+                "-",
+            ],
+        ],
+        picture=lambda index, sub_index: [
+            f"图{index}.{sub_index}.1 风荷载和小震作用下的楼层剪力",
+            f"图{index}.{sub_index}.2 风荷载和小震作用下的楼层倾覆力矩",
         ],
     )
 
     # 框架倾覆力矩占比
     HORIZENTAL_MOMENT_RATIO_FOR_COLUMN = ChapterTemplate(
         title=lambda index, sub_index: f"{index}.{sub_index} 框架倾覆力矩占比",
-        paragraph=lambda index, sub_index, **kwargs: [
-            f"本塔楼结构重力荷载代表值为{kwargs["total_mass"]}吨，"
-            + f"地上部分的结构楼板面积为{kwargs["total_area"]}平方米，"
-            + f"按结构楼板折算的重量约为{kwargs["average_load"]:.2f}kN/m2。"
-            + f"其中恒载及活载详情见表{index}.{sub_index}.1。",
+        paragraph=horizental_moment_ratio_for_column,
+        table=lambda index, sub_index: [
+            f"表{index}.{sub_index}.1 外框柱剪力及倾覆力矩分担比（X向）",
+            f"表{index}.{sub_index}.2 外框柱剪力及倾覆力矩分担比（Y向）",
         ],
-        table=lambda index, sub_index: f"表{index}.{sub_index}.1 结构质量组成",
         table_context=lambda **kwargs: [
             [
-                "类别",
-                "数值(t)",
-                "占比",
-                "单位楼板面积重量\r（kN/m^{2})",
-            ],
-            [
-                "恒载",
-                "-",
-                "-",
-                "-",
-            ],
-            [
-                "活载*0.5",
-                "-",
-                "-",
-                "-",
-            ],
-            [
-                "总质量(D+0.5L)",
-                "-",
-                "-",
-                "-",
+                "层号",
+                "剪力(kN)",
+                "剪力分担比",
+                "弯矩(kN*m)",
+                "弯矩分担比",
             ],
         ],
+        picture=lambda index, sub_index: f"图{index}.{sub_index}.1 各楼层的框架剪力和弯矩分比",
     )
 
     # 结构位移与层间位移
     DISP_AND_DRIFT = ChapterTemplate(
         title=lambda index, sub_index: f"{index}.{sub_index} 结构位移与层间位移",
-        paragraph=lambda index, sub_index, **kwargs: [
-            f"本塔楼结构重力荷载代表值为{kwargs["total_mass"]}吨，"
-            + f"地上部分的结构楼板面积为{kwargs["total_area"]}平方米，"
-            + f"按结构楼板折算的重量约为{kwargs["average_load"]:.2f}kN/m2。"
-            + f"其中恒载及活载详情见表{index}.{sub_index}.1。",
-        ],
-        table=lambda index, sub_index: f"表{index}.{sub_index}.1 结构质量组成",
+        paragraph=disp_and_drift,
+        table=lambda index, sub_index: f"表{index}.{sub_index}.1 楼层最大层间位移角",
         table_context=lambda **kwargs: [
             [
                 "类别",
@@ -363,6 +382,7 @@ class SRTemplate:
             + f"其中恒载及活载详情见表{index}.{sub_index}.1。",
         ],
         table=lambda index, sub_index: f"表{index}.{sub_index}.1 结构质量组成",
+        picture=lambda index, sub_index: f"图{index}.{sub_index}.1 结构楼层层间位移角",
         table_context=lambda **kwargs: [
             [
                 "类别",
