@@ -38,6 +38,26 @@ class SinglePeriod:
         self.mass_participate_y = mass_particpate_y
         self.mass_participate_z = mass_particpate_z
 
+    @property
+    def time_str(self):
+        return f"{self.time:.4f}"
+
+    @property
+    def movement_coeff(self):
+        return (
+            f"{self.coeff_x + self.coeff_y:.2f} ({self.coeff_x:.2f}+{self.coeff_y:.2f})"
+        )
+
+    @property
+    def rotation_coeff(self):
+        return f"{self.coeff_z:.2f}"
+
+    def get_mass_participate_x(self, last):
+        return f"{self.mass_participate_x*100:.1f} ({(self.mass_participate_x + last)*100:.1f})"
+
+    def get_mass_participate_y(self, last):
+        return f"{self.mass_participate_y*100:.1f} ({(self.mass_participate_y + last)*100:.1f})"
+
     def __str__(self):
         return f"T{self.index}:\t{self.time:.4f}s\t[X:{self.coeff_x*100:.1f}%;\tY:{self.coeff_y*100:.1f}%;\tZ:{self.coeff_z*100:.1f}%]"
 
@@ -65,7 +85,7 @@ class Period:
 
     @classmethod
     def mock_data(
-        cls, order: str = "xyz", num: int = 7, mass_participate: float = 0.95
+        cls, order: str = "xyz", num: int = 40, mass_participate: float = 0.95
     ):
         single_period_list = []
         single_period_list.append(

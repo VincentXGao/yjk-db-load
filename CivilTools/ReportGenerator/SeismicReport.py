@@ -10,6 +10,7 @@ from .SeismicReportTemplate import SRTemplate
 from .UtilFunctions import add_comma_in_num_str
 
 from ..YDBLoader.BuildingDefine import MassResult, Period
+from ..FigureGenerator.BasicPltPlotter import BasicPltPlotter, SeismicPlotter
 
 
 class SeismicReportData:
@@ -23,7 +24,7 @@ class SeismicReportData:
     def __mock_data(self):
         self.yjk_version = "6.0.0"
         self.mass_result = MassResult.mock_data()
-        self.period = Period.mock_data()
+        self.period = Period.mock_data(num=11, mass_participate=0.01)
 
     @property
     def is_valid(self):
@@ -146,10 +147,7 @@ class SeismicReport(BasicGenerator):
         self.add_paragraph(paragraph)
 
         table_title = current_context.table(chapter_index, sub_index)
-        paragraph = DocParagraph(table_title)
-        paragraph.style = self.small_title_style
-        paragraph.alignment = WD_PARAGRAPH_ALIGNMENT.CENTER
-        self.add_paragraph(paragraph)
+        self.__insert_table_figure_title(table_title)
 
         table = DocTable(4, 4)
         table.set_table_context(
@@ -178,13 +176,75 @@ class SeismicReport(BasicGenerator):
         )
         self.__insert_normal_para(paras[0])
 
+        table_title = current_context.table(chapter_index, sub_index)
+        self.__insert_table_figure_title(table_title)
+        period_num = len(self.all_data.period.periods)
+        if period_num <= 10:
+            row_num = period_num + 1
+        else:
+            row_num = 12
+        table = DocTable(row_num, 6)
+        table_context = current_context.table_context
+        last_mass_participate_x = 0
+        last_mass_participate_y = 0
+        for i in range(row_num - 1):
+            temp_period = self.all_data.period.periods[i if i <= 9 else row_num - 2]
+            if i <= 8 or (i == 9 and row_num == 11) or i > 9:
+                table_context.append(
+                    [
+                        str(i + 1),
+                        temp_period.time_str,
+                        temp_period.movement_coeff,
+                        temp_period.rotation_coeff,
+                        temp_period.get_mass_participate_x(last_mass_participate_x),
+                        temp_period.get_mass_participate_y(last_mass_participate_y),
+                    ]
+                )
+            elif i == 9:
+                table_context.append(["..."] * 6)
+            last_mass_participate_x += temp_period.mass_participate_x
+            last_mass_participate_y += temp_period.mass_participate_y
+        table.set_table_context(table_context)
+        self.add_table(table)
+
         self.__insert_normal_para(paras[1])
+
+        text = "*{（这里需要振型图片！）}"
+        titles = ["(a) 第一振型", "(b) 第二振型", "(c) 第三振型"]
+        for i in range(3):
+            paragraph = DocParagraph(text)
+            paragraph.style = self.body_style
+            paragraph.alignment = WD_PARAGRAPH_ALIGNMENT.CENTER
+            paragraph.first_line_indent = 0
+            self.add_paragraph(paragraph)
+            self.__insert_table_figure_title(titles[i])
+        figure_title = current_context.picture(chapter_index, sub_index)
+        self.__insert_table_figure_title(figure_title)
 
         return sub_index + 1
 
     def __add_shear_mass_ratio(self, chapter_index: int, sub_index: int):
         current_context = SRTemplate.SHEAR_MASS_RATIO
         self.__insert_title_par_2(current_context, chapter_index, sub_index)
+
+        para = current_context.paragraph(chapter_index, sub_index)
+        self.__insert_normal_para(para)
+
+        table_title = current_context.table(chapter_index, sub_index)
+        self.__insert_table_figure_title(table_title)
+        table = DocTable(3, 4)
+        table.merge_cells(1, 2, 2, 2)
+        table.set_table_context(current_context.table_context())
+        self.add_table(table)
+
+        figure = SeismicPlotter()
+        figure.test_plot()
+        stream = figure.save_to_stream()
+        picture = DocPicture(stream, 2)
+        self.add_picture(picture)
+
+        figure_title = current_context.picture(chapter_index, sub_index)
+        self.__insert_table_figure_title(figure_title)
 
         return sub_index + 1
 

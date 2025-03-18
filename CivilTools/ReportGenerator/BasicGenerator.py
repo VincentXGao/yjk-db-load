@@ -1,5 +1,7 @@
+import warnings
 from enum import Enum
 from docx import Document
+from docx.document import Document as doc
 from docx.shared import Inches, RGBColor, Pt, Cm
 from docx.oxml.ns import qn, nsdecls
 from docx.enum.text import WD_PARAGRAPH_ALIGNMENT, WD_BREAK
@@ -42,6 +44,7 @@ class BasicGenerator:
     def __init__(self):
         self.mm_factor = 36000
         self.doc = Document()
+        self.doc: doc
         self.init_styles()
         self.highlighted_color = 7
 
@@ -61,10 +64,10 @@ class BasicGenerator:
             _type_: _description_
         """
         body_style = styles["Body Text"]
+        body_style.font.name = "Times New Roman"
         body_style.paragraph_format.first_line_indent = Inches(0.32)
         body_style.paragraph_format.space_before = Pt(0)
         body_style.paragraph_format.space_after = Pt(0)
-        body_style.font.name = "Times New Roman"
         body_style._element.rPr.rFonts.set(qn(FONT_STR), "宋体")
         return body_style
 
@@ -147,6 +150,9 @@ class BasicGenerator:
         self.paragraph_format_double_check(p, title)
 
     def add_paragraph(self, par: DocParagraph):
+        if par.context == None or par.context == "":
+            warnings.warn("This par has no context.")
+            return
         if "{" in par.context:
             a, b = analysis_sub_and_super_script(par.context)
             if par.style != None:
@@ -263,7 +269,9 @@ class BasicGenerator:
             p.runs[0].font.bold = True
 
     def add_picture(self, doc_picture: DocPicture):
-        self.doc.add_picture(doc_picture.path, width=Inches(doc_picture.width))
+        self.doc.add_picture(
+            doc_picture.path_or_stream, width=Inches(doc_picture.width)
+        )
         last_paragraph = self.doc.paragraphs[-1]
         last_paragraph.alignment = 1
 

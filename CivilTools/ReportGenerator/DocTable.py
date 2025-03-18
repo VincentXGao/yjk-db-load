@@ -24,6 +24,7 @@ class DocTable:
             raise ValueError("输入的内容行列数量不对")
 
     def merge_cells(self, i, j, k, p):
+        """从第i,j个cell merge到第k,p个cell"""
         # 检查合并范围是否合法
         if i < 0 or i >= self.row_num or j < 0 or j >= self.column_num:
             raise ValueError("起始单元格超出表格范围")

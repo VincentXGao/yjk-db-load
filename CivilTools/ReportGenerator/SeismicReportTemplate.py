@@ -2,6 +2,10 @@ from typing import List
 from ..YDBLoader.BuildingDefine import Period
 
 
+X_DIRECTION = "X向"
+Y_DIRECTION = "Y向"
+
+
 class ChapterTemplate:
     def __init__(
         self,
@@ -21,15 +25,77 @@ class ChapterTemplate:
 
 
 def period_para_analysis(period_result: Period, chapter_index: int, sub_index: int):
+    first_para = __period_first_para(period_result, chapter_index, sub_index)
+    second_para = __period_second_para(period_result)
+    return [first_para, second_para]
+
+
+def __period_first_para(period_result: Period, chapter_index: int, sub_index: int):
     type_1 = period_result.periods[0].direction
     type_2 = period_result.periods[1].direction
     type_3 = period_result.periods[2].direction
-    first_para = ""
-    second_para = ""
+    first_para = (
+        f"表{chapter_index}.{sub_index}.1为强制刚性楼板假定下计算得到的结构模态信息，"
+    )
     if type_1.upper() == "X" and type_2.upper() == "Y" and type_3.upper() == "Z":
-        first_para = "表8.3.1为强制刚性楼板假定下计算得到的结构模态信息，前两阶振型分别为Y、X向平动振型，第三阶振型为Z向扭转振型；结构第一扭转周期与第一、第二平动周期的比值分别为0.85和0.96。结构前三振型如图8.3.1所示。"
+        z_x = period_result.periods[2].time / period_result.periods[0].time
+        z_y = period_result.periods[2].time / period_result.periods[1].time
+        first_para += (
+            "前两阶振型分别为X、Y向平动振型，第三阶振型为Z向扭转振型；"
+            + f"结构第一扭转周期与第一、第二平动周期的比值分别为{z_x:.2f}和{z_y:.2f}。"
+        )
+    elif type_1.upper() == "Y" and type_2.upper() == "X" and type_3.upper() == "Z":
+        z_y = period_result.periods[2].time / period_result.periods[0].time
+        z_x = period_result.periods[2].time / period_result.periods[1].time
+        first_para += (
+            "前两阶振型分别为Y、X向平动振型，第三阶振型为Z向扭转振型；"
+            + f"结构第一扭转周期与第一、第二平动周期的比值分别为{z_y:.2f}和{z_x:.2f}。"
+        )
+    elif type_1.upper() == "X" and type_2.upper() == "Z" and type_3.upper() == "Y":
+        z_x = period_result.periods[1].time / period_result.periods[0].time
+        first_para += (
+            "第一阶振型为X向平动，第二阶振型为Z向扭转，第三阶振型为Y向平动；"
+            + f"结构第一扭转周期与第一平动周期的比值分别为{z_x:.2f}。"
+        )
+    elif type_1.upper() == "Y" and type_2.upper() == "Z" and type_3.upper() == "X":
+        z_y = period_result.periods[1].time / period_result.periods[0].time
+        first_para += (
+            "第一阶振型为Y向平动，第二阶振型为Z向扭转，第三振阶型为X向平动；"
+            + f"结构第一扭转周期与第一平动周期的比值分别为{z_y:.2f}。"
+        )
+    elif type_1.upper() == "Z" and type_2.upper() == "X" and type_3.upper() == "Y":
+        first_para += "*{第一阶振型为Z向扭转，第二、三阶振型分别为X、Y向平动，请注意复核计算结果；}"
+    else:
+        first_para += "*{第一阶振型为Z向扭转，第二、三阶振型分别为Y、X向平动，请注意复核计算结果；}"
+    first_para += f"结构前三振型如图{chapter_index}.{sub_index}.1所示。"
+    return first_para
 
-    return [first_para, second_para]
+
+def __period_second_para(period_result: Period):
+    total_participate_x = sum([p.mass_participate_x for p in period_result.periods])
+    total_participate_y = sum([p.mass_participate_y for p in period_result.periods])
+    if total_participate_x >= 0.9 and total_participate_y >= 0.9:
+        second_para = (
+            "从上表可以看出，X、Y方向平动的质量参与系数均大于90%，满足规范要求。"
+        )
+    elif total_participate_x >= 0.9:
+        second_para = "从上表可以看出，X方向平动的质量参与系数大于90%，*{但Y方向不满足，可酌情增加计算振型数量。}"
+    elif total_participate_y >= 0.9:
+        second_para = "从上表可以看出，Y方向平动的质量参与系数大于90%，*{但X方向不满足，可酌情增加计算振型数量。}"
+    else:
+        second_para = "从上表可以看出，*{X、Y方向平动的质量参与系数均小于90%，可酌情增加计算振型数量。}"
+    return second_para
+
+
+def shear_mass_ratio(chapter_index: int, sub_index: int):
+    # todo: 这里需要根据设防烈度及基底剪力结果进行判断
+    para_context = "剪重比为结构设计的重要指标，按规范7度，0.10g的反应谱计算，"
+    para_context += f"结构基底和各楼层剪重比计算具体结果分别见表{chapter_index}.{sub_index}.1和图{chapter_index}.{sub_index}.1。"
+    para_context += (
+        "计算结果显示，结构两个主向的基底剪力均满足规范1.60%的最小剪重比要求。"
+    )
+
+    return para_context
 
 
 class SRTemplate:
@@ -132,126 +198,45 @@ class SRTemplate:
         title=lambda index, sub_index: f"{index}.{sub_index} 振型与周期",
         paragraph=period_para_analysis,
         table=lambda index, sub_index: f"表{index}.{sub_index}.1 结构模态信息",
-        table_context=lambda **kwargs: [
+        table_context=[
             [
                 "振型号",
                 "周期",
                 "平动系数(X+Y)",
                 "扭转系数",
-                "X向平动质量参与系数(累计)",
-                "Y向平动质量参与系数(累计)",
-            ],
-            [
-                "1",
-                "-",
-                "-",
-                "-",
-                "-",
-                "-",
-            ],
-            [
-                "2",
-                "-",
-                "-",
-                "-",
-                "-",
-                "-",
-            ],
-            [
-                "3",
-                "-",
-                "-",
-                "-",
-                "-",
-                "-",
-            ],
-            [
-                "4",
-                "-",
-                "-",
-                "-",
-                "-",
-                "-",
-            ],
-            [
-                "5",
-                "-",
-                "-",
-                "-",
-                "-",
-                "-",
-            ],
-            [
-                "6",
-                "-",
-                "-",
-                "-",
-                "-",
-                "-",
-            ],
-            [
-                "7",
-                "-",
-                "-",
-                "-",
-                "-",
-                "-",
-            ],
-            [
-                "8",
-                "-",
-                "-",
-                "-",
-                "-",
-                "-",
-            ],
-            [
-                "9",
-                "-",
-                "-",
-                "-",
-                "-",
-                "-",
+                "X向平动质量参与系数(累计%)",
+                "Y向平动质量参与系数(累计%)",
             ],
         ],
+        picture=lambda index, sub_index: f"图{index}.{sub_index}.1 结构前三振型示意图",
     )
 
     # 楼层剪重比
     SHEAR_MASS_RATIO = ChapterTemplate(
         title=lambda index, sub_index: f"{index}.{sub_index} 楼层剪重比",
-        paragraph=lambda index, sub_index, **kwargs: [
-            f"本塔楼结构重力荷载代表值为{kwargs["total_mass"]}吨，"
-            + f"地上部分的结构楼板面积为{kwargs["total_area"]}平方米，"
-            + f"按结构楼板折算的重量约为{kwargs["average_load"]:.2f}kN/m2。"
-            + f"其中恒载及活载详情见表{index}.{sub_index}.1。",
-        ],
-        table=lambda index, sub_index: f"表{index}.{sub_index}.1 结构质量组成",
+        paragraph=shear_mass_ratio,
+        table=lambda index, sub_index: f"表{index}.{sub_index}.1 结构基底剪重比",
         table_context=lambda **kwargs: [
             [
-                "类别",
-                "数值(t)",
-                "占比",
-                "单位楼板面积重量\r（kN/m^{2})",
+                "方向",
+                "基底剪力(kN)",
+                "重力荷载代表值(kN)",
+                "剪重比",
             ],
             [
-                "恒载",
-                "-",
-                "-",
-                "-",
-            ],
-            [
-                "活载*0.5",
+                X_DIRECTION,
                 "-",
                 "-",
                 "-",
             ],
             [
-                "总质量(D+0.5L)",
+                Y_DIRECTION,
                 "-",
                 "-",
                 "-",
             ],
         ],
+        picture=lambda index, sub_index: f"图{index}.{sub_index}.1 地震作用下各楼层剪重比",
     )
 
     # 楼层剪力及倾覆力矩
