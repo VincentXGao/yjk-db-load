@@ -2,11 +2,21 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Python: pytest",
+            "name": "Python: pytest-for-doc-generate",
             "type": "debugpy",
             "request": "launch",
             "module": "pytest",
-            "args": [".\\tests\\reportGenerator\\test_seismic_report.py"],
+            "args": [
+                ".\\tests\\reportGenerator\\test_seismic_report.py"
+            ],
+            "console": "externalTerminal"
+        },
+        {
+            "name": "Python: pytest-all",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "pytest",
+            "args": [],
             "console": "externalTerminal"
         }
     ]
