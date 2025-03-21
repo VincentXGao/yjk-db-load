@@ -18,6 +18,14 @@
             "module": "pytest",
             "args": [],
             "console": "externalTerminal"
+        },
+        {
+            "name": "Python: pytest-one",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "pytest",
+            "args": [".\\tests\\loader\\test_mass.py"],
+            "console": "integratedTerminal"
         }
     ]
 }

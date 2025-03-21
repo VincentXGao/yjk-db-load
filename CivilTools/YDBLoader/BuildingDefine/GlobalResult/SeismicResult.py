@@ -64,6 +64,9 @@ class SinglePeriod:
     def __repr__(self):
         return str(self)
 
+    def to_json(self):
+        return {"index": self.index, "time": self.time}
+
 
 class Period:
     def __init__(self, periods: List[SinglePeriod], model_type=None):
@@ -144,6 +147,9 @@ class Period:
             )
         return Period(single_period_list)
 
+    def to_json(self):
+        return {"periods": [i.to_json() for i in self.periods]}
+
 
 class ValuePeer:
     def __init__(self, x: float, y: float):
@@ -157,6 +163,9 @@ class ValuePeer:
             return f"X:{self.x:.2f}\tY:{self.y:.2f}"
         else:
             return f"X:{self.x:.3f}\tY:{self.y:.3f}"
+
+    def to_json(self):
+        return {"X": self.x, "Y": self.y}
 
 
 class FloorSeismicResult:
@@ -186,6 +195,13 @@ class FloorSeismicResult:
     def __repr__(self):
         return self.__str__()
 
+    def to_json(self):
+        return {
+            "floor_num": self.floor_num,
+            "tower_num": self.tower_num,
+            "shear": self.shear.to_json(),
+        }
+
 
 class SeismicResult:
     def __init__(self, floor_result: List[FloorSeismicResult]):
@@ -213,6 +229,9 @@ class SeismicResult:
 
     def __repr__(self):
         return self.__str__()
+
+    def to_json(self):
+        return {"floor_result": [i.to_json() for i in self.floor_result]}
 
 
 if __name__ == "__main__":

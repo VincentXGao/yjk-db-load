@@ -153,8 +153,8 @@ class YDBLoader:
         row_data = self.connector.extract_table_by_columns(table_name, useful_columns)
         mass_list = []
         for temp_mass in row_data:
-            floor_num = RowDataFactory.convert_to_int(temp_mass, 0)
-            tower_num = RowDataFactory.convert_to_int(temp_mass, 1)
+            floor_num = RowDataFactory.convert_to_int(temp_mass[0])
+            tower_num = RowDataFactory.convert_to_int(temp_mass[1])
             mass_info = RowDataFactory.extract_list(temp_mass, 2)
             dead_load = RowDataFactory.convert_to_float(mass_info[1])
             live_load = RowDataFactory.convert_to_float(mass_info[2])
@@ -225,7 +225,6 @@ class YDBLoader:
             force = ValuePeer(force_x, force_y)
             shear = ValuePeer(shear_x, shear_y)
             moment = ValuePeer(moment_x, moment_y)
-
             temp_floor_result = FloorSeismicResult(
                 floor_num, tower_num, force, shear, moment
             )

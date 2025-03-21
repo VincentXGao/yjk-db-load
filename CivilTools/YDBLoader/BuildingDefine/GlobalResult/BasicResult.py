@@ -12,17 +12,25 @@ class SingleMassResult:
     ):
         self.floor_num = floor_num
         self.tower_num = tower_num
-        self.dead_load = dead_load
+        self.dead_load = round(dead_load, 4)
         """单层恒载，单位kN，没有折减"""
-        self.live_load = live_load
+        self.live_load = round(live_load, 4) * 2
         """单层活载，单位kN，没有折减"""
-        self.slab_area = slab_area
+        self.slab_area = round(slab_area)
         """单层楼板面积，单位m2"""
 
     @property
     def total_load(self):
         """单层质量，恒+0.5活"""
-        return self.dead_load + 0.5 * self.live_load
+        return round(self.dead_load + 0.5 * self.live_load, 4)
+
+    def to_json(self):
+        return {
+            "floor_num": self.floor_num,
+            "tower_num": self.tower_num,
+            "dead_load": self.dead_load,
+            "live_load": self.live_load,
+        }
 
 
 class MassResult:
@@ -52,3 +60,6 @@ class MassResult:
             mass_list.append(SingleMassResult(i + 1, 1, 5000, 2000, 350))
 
         return MassResult(mass_list)
+
+    def to_json(self):
+        return {"mass_list": [i.to_json() for i in self.mass_list]}
