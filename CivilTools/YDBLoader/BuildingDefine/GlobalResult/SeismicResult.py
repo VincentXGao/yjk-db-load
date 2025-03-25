@@ -172,8 +172,8 @@ class FloorDrift:
     def __init__(
         self,
         floor_height: float,
-        drift_disp_x: float,
-        drift_disp_y: float,
+        drift_max_disp_x: float,
+        drift_max_disp_y: float,
         drift_min_disp_x: float,
         drift_min_disp_y: float,
         max_disp_x: float,
@@ -182,14 +182,22 @@ class FloorDrift:
         ave_disp_y: float,
     ):
         self.floor_height = floor_height
-        self.max_disp_x = drift_disp_x
-        self.max_disp_y = drift_disp_y
-        self.min_disp_x = drift_min_disp_x
-        self.min_disp_y = drift_min_disp_y
+        self.drift_max_disp_x = drift_max_disp_x
+        self.drift_max_disp_y = drift_max_disp_y
+        self.drift_min_disp_x = drift_min_disp_x
+        self.drift_min_disp_y = drift_min_disp_y
         self.max_disp_x = max_disp_x
         self.ave_disp_x = ave_disp_x
         self.max_disp_y = max_disp_y
         self.ave_disp_y = ave_disp_y
+
+    @property
+    def drift_x(self):
+        return round(self.floor_height / self.drift_max_disp_x)
+
+    @property
+    def drift_y(self):
+        return round(self.floor_height / self.drift_max_disp_y)
 
 
 class FloorSeismicResult:
