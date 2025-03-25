@@ -15,6 +15,7 @@ ROTATION = "Rotation"
 
 FLOOR_NUM = "FlrNo"
 TOWER_NUM = "TowNo"
+LOAD_CASE_ID = "LDCase"
 
 
 class YDBTableName:
@@ -84,7 +85,7 @@ class YDBTableName:
     """
 
     RESULT_FLOOR_DATA_TABLE = "dsnStatFlrData"
-    """包含了大多数楼层计算结果，包括风、地震的各类外力、承载力、刚度等"""
+    """包含了大多数楼层计算结果，包括风、地震的各类外力、承载力、刚度等等"""
     RESULT_FLOOR_DATA_USEFUL_COLUMNS_SEISMIC = [
         FLOOR_NUM,
         TOWER_NUM,
@@ -94,6 +95,8 @@ class YDBTableName:
         "FlrVYInf",
         "FlrMXInf",
         "FlrMYInf",  # 4 5 6 7
+        "CZLXInf",
+        "CZLYInf",
     ]
     """ 
     0-floor_num , 
@@ -104,6 +107,26 @@ class YDBTableName:
     5-Y方向地震层间剪力,
     6-X方向地震倾覆力矩,
     7-Y方向地震倾覆力矩,
+    8-X方向抗剪承载力,
+    9-Y方向抗剪承载力,
+    """
+
+    RESULT_FLOOR_DATA_USEFUL_COLUMNS_STIFFNESS = [
+        "StiffShearCutXInf",
+        "StiffShearCutYInf",
+        "StiffShearDisXInf",
+        "StiffShearDisYInf",
+        "StiffBendXInf",
+        "StiffBendYInf",
+    ]
+    """ 
+    包含了楼层的各类刚度，剪切刚度、剪力位移计算刚度、剪弯刚度
+    0-剪切刚度X , 
+    1-剪切刚度Y , 
+    2-剪力位移计算刚度X,
+    3-剪力位移计算刚度Y,
+    4-剪弯刚度X,
+    5-剪弯刚度Y,
     """
 
     RESULT_FLOOR_DATA_USEFUL_COLUMNS_WIND = [
@@ -119,4 +142,46 @@ class YDBTableName:
     2-XY方向顺风外力,
     3-XY方向顺风剪力,
     4-XY方向顺风弯矩,
+    """
+
+    DISP_FLOOR_DATA_TABLE = "dsnStatDis"
+    """包含了楼层在不同工况下的楼层位移"""
+
+    DISP_FLOOR_DATA_USEFUL_COLUMNS_WIND = [
+        FLOOR_NUM,
+        TOWER_NUM,
+        LOAD_CASE_ID,
+        "MaxFlrAngleDis",
+        "MinFlrAngleDis",
+        "MaxD",
+        "MassAveD",
+    ]
+    """
+    0-floor_num , 
+    1-tower_num , 
+    2-loadCaseID，需要做筛选
+    3-最大层间位移,
+    4-最小层间位移,
+    5-最大位移,
+    6-平均位移,
+    """
+
+    ADJUST_COEF_TABLE = "dsnStatFlrAdjCoe"
+    """楼层调整系数表格"""
+    ADJUST_COEF_USEFUL_COLUMN = [FLOOR_NUM, TOWER_NUM, "JZBCoeXInf", "JZBCoeYInf"]
+    """
+    0-floor_num , 
+    1-tower_num , 
+    2-X方向剪重比调整系数
+    3-Y方向剪重比调整系数
+    """
+
+    REAL_FLOOR_TABLE = "pmFlrAssembly"
+    """楼层调整系数表格"""
+    REAL_FLOOR_USEFUL_COLUMN = ["No", STD_FLR_ID, "Level", "Height"]
+    """
+    0-楼层编号 , 
+    1-标准层ID , 
+    2-层底高度
+    3-楼层高度
     """

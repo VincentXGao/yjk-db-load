@@ -168,6 +168,30 @@ class ValuePeer:
         return {"X": self.x, "Y": self.y}
 
 
+class FloorDrift:
+    def __init__(
+        self,
+        floor_height: float,
+        drift_disp_x: float,
+        drift_disp_y: float,
+        drift_min_disp_x: float,
+        drift_min_disp_y: float,
+        max_disp_x: float,
+        ave_disp_x: float,
+        max_disp_y: float,
+        ave_disp_y: float,
+    ):
+        self.floor_height = floor_height
+        self.max_disp_x = drift_disp_x
+        self.max_disp_y = drift_disp_y
+        self.min_disp_x = drift_min_disp_x
+        self.min_disp_y = drift_min_disp_y
+        self.max_disp_x = max_disp_x
+        self.ave_disp_x = ave_disp_x
+        self.max_disp_y = max_disp_y
+        self.ave_disp_y = ave_disp_y
+
+
 class FloorSeismicResult:
     def __init__(
         self,
@@ -177,8 +201,9 @@ class FloorSeismicResult:
         shear: ValuePeer = None,
         moment: ValuePeer = None,
         disp: ValuePeer = None,
-        stiffness: ValuePeer = None,
+        stiffness: List[ValuePeer] = [],
         shear_capacity: ValuePeer = None,
+        drifts: List[FloorDrift] = [],
     ):
         self.floor_num = floor_num
         self.tower_num = tower_num
@@ -188,6 +213,7 @@ class FloorSeismicResult:
         self.disp = disp
         self.stiffness = stiffness
         self.shear_capacity = shear_capacity
+        self.drifts = drifts
 
     def __str__(self):
         return f"Flr.{self.floor_num}:Fx={self.force.x};Fy={self.force.y}"

@@ -65,6 +65,22 @@ class Connector:
             print(f"从表 {table_name} 提取数据时出错: {e}")
             return []
 
+    def extract_table_by_columns_and_filter(
+        self, table_name, column_list: List[str], limit_column: str, target_value
+    ):
+        if self.cursor is None:
+            self.connect()
+        try:
+            column_list_sql = ",".join(column_list)
+            self.cursor.execute(
+                f"SELECT {column_list_sql} FROM {table_name} WHERE {limit_column}=={target_value}"
+            )
+            rows = self.cursor.fetchall()
+            return rows
+        except sqlite3.Error as e:
+            print(f"从表 {table_name} 提取数据时出错: {e}")
+            return []
+
     def is_table_in_db(self, table_name: str):
 
         if self.cursor is None:

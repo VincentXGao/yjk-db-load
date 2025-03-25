@@ -1,6 +1,6 @@
 from .BuildingDefine import Beam, Column, Joint, ComponentType, Grid
 from .BuildingDefine import SinglePeriod, Period, MassResult, SingleMassResult
-from .BuildingDefine import ValuePeer, FloorSeismicResult, SeismicResult
+from .BuildingDefine import ValuePeer, FloorSeismicResult, SeismicResult, FloorDrift
 from .BuildingDefine.Section import Section, ShapeEnum
 from .SQLiteConnector import Connector, YDBTableName, RowDataFactory
 from .YDBType import YDBType
@@ -199,9 +199,33 @@ class YDBLoader:
         self.__check_result_model("seismic")
         table_name = YDBTableName.RESULT_FLOOR_DATA_TABLE
         useful_columns = YDBTableName.RESULT_FLOOR_DATA_USEFUL_COLUMNS_SEISMIC
+        useful_columns_stiffness = (
+            YDBTableName.RESULT_FLOOR_DATA_USEFUL_COLUMNS_STIFFNESS
+        )
         row_data = self.connector.extract_table_by_columns(table_name, useful_columns)
+        stiffness_row_data = self.connector.extract_table_by_columns(
+            table_name, useful_columns_stiffness
+        )
+
+        table_disp_name = YDBTableName.DISP_FLOOR_DATA_TABLE
+        useful_columns_disp = YDBTableName.DISP_FLOOR_DATA_USEFUL_COLUMNS_WIND
+
+        seismic_load_cases = self.__get_seismic_loadcase_numbers()
+
+        seismic_disp_x_row_data = self.connector.extract_table_by_columns_and_filter(
+            table_disp_name, useful_columns_disp, "LDCase", seismic_load_cases[0]
+        )
+        seismic_disp_y_row_data = self.connector.extract_table_by_columns_and_filter(
+            table_disp_name, useful_columns_disp, "LDCase", seismic_load_cases[1]
+        )
+        jzb_coeff = self.__get_JZBCoe()
+        floor_height = self.__get_floor_height()
         floor_result_list = []
-        for temp_floor in row_data:
+        for i in range(len(row_data)):
+            temp_floor = row_data[i]
+            temp_floor_stiffness = stiffness_row_data[i]
+            temp_disp_x = seismic_disp_x_row_data[i]
+            temp_disp_y = seismic_disp_y_row_data[i]
             floor_num = RowDataFactory.extract_int(temp_floor, 0)
             tower_num = RowDataFactory.extract_int(temp_floor, 1)
             force_x = RowDataFactory.convert_to_float(
@@ -222,23 +246,109 @@ class YDBLoader:
             moment_y = RowDataFactory.convert_to_float(
                 RowDataFactory.extract_list(temp_floor, 7)[1]
             )
+            shear_cap_x = RowDataFactory.convert_to_float(
+                RowDataFactory.extract_list(temp_floor, 8)[1]
+            )
+            shear_cap_y = RowDataFactory.convert_to_float(
+                RowDataFactory.extract_list(temp_floor, 9)[1]
+            )
+            stiff_x_shear_cut = RowDataFactory.convert_to_float(
+                RowDataFactory.extract_list(temp_floor_stiffness, 0)[1]
+            )
+            stiff_y_shear_cut = RowDataFactory.convert_to_float(
+                RowDataFactory.extract_list(temp_floor_stiffness, 1)[1]
+            )
+            stiff_x_shear_dis = RowDataFactory.convert_to_float(
+                RowDataFactory.extract_list(temp_floor_stiffness, 2)[1]
+            )
+            stiff_y_shear_dis = RowDataFactory.convert_to_float(
+                RowDataFactory.extract_list(temp_floor_stiffness, 3)[1]
+            )
+            stiff_x_shear_bend = RowDataFactory.convert_to_float(
+                RowDataFactory.extract_list(temp_floor_stiffness, 4)[1]
+            )
+            stiff_y_shear_bend = RowDataFactory.convert_to_float(
+                RowDataFactory.extract_list(temp_floor_stiffness, 5)[1]
+            )
+
+            max_drift_disp_x = RowDataFactory.convert_to_float(temp_disp_x[3])
+            max_drift_disp_y = RowDataFactory.convert_to_float(temp_disp_y[3])
+
+            min_drift_disp_x = RowDataFactory.convert_to_float(temp_disp_x[4])
+            min_drift_disp_y = RowDataFactory.convert_to_float(temp_disp_y[4])
+
+            max_disp_x = RowDataFactory.convert_to_float(temp_disp_x[5])
+            max_disp_y = RowDataFactory.convert_to_float(temp_disp_y[5])
+
+            ave_disp_x = RowDataFactory.convert_to_float(temp_disp_x[6])
+            ave_disp_y = RowDataFactory.convert_to_float(temp_disp_y[6])
+
             force = ValuePeer(force_x, force_y)
             shear = ValuePeer(shear_x, shear_y)
             moment = ValuePeer(moment_x, moment_y)
+            disp = ValuePeer(
+                max_disp_x * jzb_coeff[floor_num][0],
+                max_disp_y * jzb_coeff[floor_num][1],
+            )
+            stiffness_list = [
+                ValuePeer(stiff_x_shear_cut, stiff_y_shear_cut),
+                ValuePeer(stiff_x_shear_dis, stiff_y_shear_dis),
+                ValuePeer(stiff_x_shear_bend, stiff_y_shear_bend),
+            ]
+            shear_capacity = ValuePeer(shear_cap_x, shear_cap_y)
+            drifts = [
+                FloorDrift(
+                    floor_height[floor_num],
+                    max_drift_disp_x * jzb_coeff[floor_num][0],
+                    max_drift_disp_y * jzb_coeff[floor_num][1],
+                    min_drift_disp_x * jzb_coeff[floor_num][0],
+                    min_drift_disp_y * jzb_coeff[floor_num][1],
+                    max_disp_x * jzb_coeff[floor_num][0],
+                    max_disp_y * jzb_coeff[floor_num][1],
+                    ave_disp_x * jzb_coeff[floor_num][0],
+                    ave_disp_y * jzb_coeff[floor_num][1],
+                )
+            ]
             temp_floor_result = FloorSeismicResult(
-                floor_num, tower_num, force, shear, moment
+                floor_num,
+                tower_num,
+                force,
+                shear,
+                moment,
+                disp,
+                stiffness_list,
+                shear_capacity,
+                drifts,
             )
             floor_result_list.append(temp_floor_result)
 
         return SeismicResult(floor_result_list)
 
-    def get_wind_result(self):
+    def get_wind_result(self) -> SeismicResult:
         self.__check_result_model("wind")
         table_name = YDBTableName.RESULT_FLOOR_DATA_TABLE
         useful_columns = YDBTableName.RESULT_FLOOR_DATA_USEFUL_COLUMNS_WIND
         row_data = self.connector.extract_table_by_columns(table_name, useful_columns)
+
+        table_disp_name = YDBTableName.DISP_FLOOR_DATA_TABLE
+        useful_columns_disp = YDBTableName.DISP_FLOOR_DATA_USEFUL_COLUMNS_WIND
+
+        wind_load_cases = self.__get_wind_loadcase_numbers()
+
+        wind_disp_x_row_data = self.connector.extract_table_by_columns_and_filter(
+            table_disp_name, useful_columns_disp, "LDCase", wind_load_cases[0]
+        )
+        wind_disp_y_row_data = self.connector.extract_table_by_columns_and_filter(
+            table_disp_name, useful_columns_disp, "LDCase", wind_load_cases[1]
+        )
+
         floor_result_list = []
-        for temp_floor in row_data:
+        floor_height = self.__get_floor_height()
+
+        for i in range(len(row_data)):
+            temp_floor = row_data[i]
+            temp_disp_x = wind_disp_x_row_data[i]
+            temp_disp_y = wind_disp_y_row_data[i]
             floor_num = RowDataFactory.extract_int(temp_floor, 0)
             tower_num = RowDataFactory.extract_int(temp_floor, 1)
             force_x = RowDataFactory.convert_to_float(
@@ -259,14 +369,82 @@ class YDBLoader:
             moment_y = RowDataFactory.convert_to_float(
                 RowDataFactory.extract_list(temp_floor, 4)[3]
             )
+
+            max_drift_disp_x = RowDataFactory.convert_to_float(temp_disp_x[3])
+            max_drift_disp_y = RowDataFactory.convert_to_float(temp_disp_y[3])
+
+            min_drift_disp_x = RowDataFactory.convert_to_float(temp_disp_x[4])
+            min_drift_disp_y = RowDataFactory.convert_to_float(temp_disp_y[4])
+
+            max_disp_x = RowDataFactory.convert_to_float(temp_disp_x[5])
+            max_disp_y = RowDataFactory.convert_to_float(temp_disp_y[5])
+
+            ave_disp_x = RowDataFactory.convert_to_float(temp_disp_x[6])
+            ave_disp_y = RowDataFactory.convert_to_float(temp_disp_y[6])
+
             force = ValuePeer(abs(force_x), abs(force_y))
             shear = ValuePeer(abs(shear_x), abs(shear_y))
             moment = ValuePeer(abs(moment_x), abs(moment_y))
+            disp = ValuePeer(123, 245)
+            drifts = [
+                FloorDrift(
+                    floor_height[floor_num],
+                    max_drift_disp_x,
+                    max_drift_disp_y,
+                    min_drift_disp_x,
+                    min_drift_disp_y,
+                    max_disp_x,
+                    max_disp_y,
+                    ave_disp_x,
+                    ave_disp_y,
+                )
+            ]
             temp_floor_result = FloorSeismicResult(
-                floor_num, tower_num, force, shear, moment
+                floor_num, tower_num, force, shear, moment, disp, drifts=drifts
             )
+
             floor_result_list.append(temp_floor_result)
         return SeismicResult(floor_result_list)
+
+    def __get_wind_loadcase_numbers(self):
+        return [2, 4]
+
+    def __get_seismic_loadcase_numbers(self):
+        return [9, 10]
+
+    def __get_JZBCoe(self):
+        if hasattr(self, "jzb_coeff"):
+            return self.jzb_coeff
+        table_name = YDBTableName.ADJUST_COEF_TABLE
+        useful_column = YDBTableName.ADJUST_COEF_USEFUL_COLUMN
+        row_data = self.connector.extract_table_by_columns(table_name, useful_column)
+        jzb_coeff = {}
+        for temp_data in row_data:
+            floor_num = RowDataFactory.extract_int(temp_data, 0)
+            # tower_num = RowDataFactory.extract_int(temp_data, 1)
+            coeff_x = RowDataFactory.convert_to_float(
+                RowDataFactory.extract_list(temp_data, 2)[1]
+            )
+            coeff_y = RowDataFactory.convert_to_float(
+                RowDataFactory.extract_list(temp_data, 3)[1]
+            )
+            jzb_coeff[floor_num] = [coeff_x, coeff_y]
+        self.jzb_coeff = jzb_coeff
+        return self.jzb_coeff
+
+    def __get_floor_height(self):
+        if hasattr(self, "floor_height"):
+            return self.floor_height
+        table_name = YDBTableName.REAL_FLOOR_TABLE
+        useful_column = YDBTableName.REAL_FLOOR_USEFUL_COLUMN
+        row_data = self.connector.extract_table_by_columns(table_name, useful_column)
+        floor_height = {}
+        for temp_data in row_data:
+            floor_num = RowDataFactory.extract_int(temp_data, 0)
+            height = RowDataFactory.extract_float(temp_data, 3)
+            floor_height[floor_num] = height
+        self.floor_height = floor_height
+        return self.floor_height
 
 
 if __name__ == "__main__":

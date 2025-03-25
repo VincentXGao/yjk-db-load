@@ -24,7 +24,7 @@
             "type": "debugpy",
             "request": "launch",
             "module": "pytest",
-            "args": [".\\tests\\loader\\test_mass.py"],
+            "args": [".\\tests\\loader\\test_loader.py"],
             "console": "integratedTerminal"
         }
     ]

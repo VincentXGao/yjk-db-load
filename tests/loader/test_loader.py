@@ -29,6 +29,11 @@ class TestYDBLoader(unittest.TestCase):
         )
 
     def test_extract_seismic_result(self):
-        file_path = "testfiles/dsnModel_yxy.ydb"
+        file_path = "testfiles/dsnModel_0321.ydb"
         model = YDBLoader(file_path)
-        model.get_seismic_result()
+        result = model.get_seismic_result()
+
+    def test_wind_disp(self):
+        file_path = "testfiles/dsnModel_0321.ydb"
+        model = YDBLoader(file_path)
+        model.get_wind_result()
