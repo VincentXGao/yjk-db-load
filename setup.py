@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="civil_tools_v",  # 包的名称
-    version="0.0.2",  # 包的版本号
+    version="0.0.3",  # 包的版本号
     author="Xinyu Gao (Vincent)",  # 作者姓名
     author_email="just_gxy@163.com",  # 作者邮箱
     description="A powerful tool for civil engineer in their work.",  # 包的简短描述

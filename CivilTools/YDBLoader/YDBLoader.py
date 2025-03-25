@@ -232,6 +232,42 @@ class YDBLoader:
 
         return SeismicResult(floor_result_list)
 
+    def get_wind_result(self):
+        self.__check_result_model("wind")
+        table_name = YDBTableName.RESULT_FLOOR_DATA_TABLE
+        useful_columns = YDBTableName.RESULT_FLOOR_DATA_USEFUL_COLUMNS_WIND
+        row_data = self.connector.extract_table_by_columns(table_name, useful_columns)
+        floor_result_list = []
+        for temp_floor in row_data:
+            floor_num = RowDataFactory.extract_int(temp_floor, 0)
+            tower_num = RowDataFactory.extract_int(temp_floor, 1)
+            force_x = RowDataFactory.convert_to_float(
+                RowDataFactory.extract_list(temp_floor, 2)[1]
+            )
+            force_y = RowDataFactory.convert_to_float(
+                RowDataFactory.extract_list(temp_floor, 2)[3]
+            )
+            shear_x = RowDataFactory.convert_to_float(
+                RowDataFactory.extract_list(temp_floor, 3)[1]
+            )
+            shear_y = RowDataFactory.convert_to_float(
+                RowDataFactory.extract_list(temp_floor, 3)[3]
+            )
+            moment_x = RowDataFactory.convert_to_float(
+                RowDataFactory.extract_list(temp_floor, 4)[1]
+            )
+            moment_y = RowDataFactory.convert_to_float(
+                RowDataFactory.extract_list(temp_floor, 4)[3]
+            )
+            force = ValuePeer(abs(force_x), abs(force_y))
+            shear = ValuePeer(abs(shear_x), abs(shear_y))
+            moment = ValuePeer(abs(moment_x), abs(moment_y))
+            temp_floor_result = FloorSeismicResult(
+                floor_num, tower_num, force, shear, moment
+            )
+            floor_result_list.append(temp_floor_result)
+        return SeismicResult(floor_result_list)
+
 
 if __name__ == "__main__":
     file_path = "testfiles/dtlmodel1.ydb"

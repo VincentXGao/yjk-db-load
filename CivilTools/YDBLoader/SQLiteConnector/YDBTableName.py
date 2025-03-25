@@ -105,3 +105,18 @@ class YDBTableName:
     6-X方向地震倾覆力矩,
     7-Y方向地震倾覆力矩,
     """
+
+    RESULT_FLOOR_DATA_USEFUL_COLUMNS_WIND = [
+        FLOOR_NUM,
+        TOWER_NUM,
+        "FlrWindFInf",
+        "FlrWindVInf",  # 0 1 2 3
+        "FlrWindMInf",
+    ]
+    """ 
+    0-floor_num , 
+    1-tower_num , 
+    2-XY方向顺风外力,
+    3-XY方向顺风剪力,
+    4-XY方向顺风弯矩,
+    """
