@@ -54,6 +54,6 @@ class TestUtilFunctions(unittest.TestCase):
         for sp in [sp1, sp2, sp3, sp4]:
             plotter = StairCalculationSheetPNGPlotter(sp)
             plotter.plot_moment(
-                f"testfiles/stair_plot/test_moment_{i}.png", [0, 500, 0]
+                f"testfiles/stair_plot/test_moment_{i}.png", [0, -100, 500, -100, 0]
             )
             i += 1

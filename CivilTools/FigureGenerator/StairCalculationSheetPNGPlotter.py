@@ -22,11 +22,62 @@ class StairCalculationSheetPNGPlotter:
         end_x = self.end_x
         start_y = self.start_y
         end_y = self.end_y
-
         moment_max = max([abs(i) for i in moments])
         # 用来确定弯矩最大值处的高度
         moment_height = [m / moment_max * 400 for m in moments]
-        self.__draw_moment_curve(start_x, start_y, end_x, end_y, moment_height)
+        moment_height_1 = [0, moment_height[1] * 0.25, moment_height[1]]
+        moment_height_2 = [moment_height[1], moment_height[2], moment_height[3]]
+        moment_height_3 = [moment_height[3], moment_height[3] * 0.25, 0]
+        moment_1 = [0, moments[1] * 0.25, moments[1]]
+        moment_2 = [moments[1], moments[2], moments[3]]
+        moment_3 = [moments[3], moments[3] * 0.25, 0]
+
+        if self.current_stair.stair_type == "AT":
+            self.__draw_moment_curve(
+                start_x, start_y, end_x, end_y, moment_height_2, moment_2, True
+            )
+        elif self.current_stair.stair_type == "BT":
+            self.__draw_moment_curve(
+                start_x,
+                start_y,
+                start_x + 500,
+                start_y,
+                moment_height_1,
+                moment_1,
+                False,
+            )
+            self.__draw_moment_curve(
+                start_x + 500, start_y, end_x, end_y, moment_height_2, moment_2, True
+            )
+        elif self.current_stair.stair_type == "CT":
+            self.__draw_moment_curve(
+                start_x, start_y, end_x - 500, end_y, moment_height_2, moment_2, True
+            )
+            self.__draw_moment_curve(
+                end_x - 500, end_y, end_x, end_y, moment_height_3, moment_3, False
+            )
+        elif self.current_stair.stair_type == "DT":
+            self.__draw_moment_curve(
+                start_x,
+                start_y,
+                start_x + 500,
+                start_y,
+                moment_height_1,
+                moment_1,
+                False,
+            )
+            self.__draw_moment_curve(
+                start_x + 500,
+                start_y,
+                end_x - 500,
+                end_y,
+                moment_height_2,
+                moment_2,
+                True,
+            )
+            self.__draw_moment_curve(
+                end_x - 500, end_y, end_x, end_y, moment_height_3, moment_3, False
+            )
         self.plotter.save(path)
 
     def __plot_basic_stair(self):
@@ -198,7 +249,16 @@ class StairCalculationSheetPNGPlotter:
             temp_x = x - 149.56 + 30 * i
             self.plotter.draw_line(temp_x, temp_y, temp_x + 25, temp_y - 43.3)
 
-    def __draw_moment_curve(self, x1, y1, x2, y2, line_length_list: List[float]):
+    def __draw_moment_curve(
+        self,
+        x1,
+        y1,
+        x2,
+        y2,
+        line_length_list: List[float],
+        moment_list: List[float],
+        draw_middle: bool,
+    ):
         degree = math.atan2((y1 - y2), (x2 - x1))
         sin_deg = math.sin(degree)
         cos_deg = math.cos(degree)
@@ -233,6 +293,43 @@ class StairCalculationSheetPNGPlotter:
             c_r * 2,
             start_degree,
             end_degree,
+        )
+        degree = math.atan2((y1 - y2), (x2 - x1))
+        if draw_middle:
+            str_x = int(temp_x2)
+            str_y = int(temp_y2)
+            self.plotter.draw_text(
+                str_x,
+                str_y,
+                f"{moment_list[1]:.1f}",
+                100,
+                degree,
+                0,
+                180 if moment_list[1] > 0 else -180,
+            )
+
+        str_x = int(temp_x1)
+        str_y = int(temp_y1)
+        self.plotter.draw_text(
+            str_x,
+            str_y,
+            f"{moment_list[0]:.1f}",
+            100,
+            degree,
+            800 if (self.current_stair.left_extend_length > 0 and draw_middle) else 0,
+            180 if moment_list[0] > 0 else -180,
+        )
+
+        str_x = int(temp_x3)
+        str_y = int(temp_y3)
+        self.plotter.draw_text(
+            str_x,
+            str_y,
+            f"{moment_list[2]:.1f}",
+            100,
+            degree,
+            -800 if (self.current_stair.right_extend_length > 0 and draw_middle) else 0,
+            180 if moment_list[2] > 0 else -180,
         )
 
     def __calculate_circle_center_by_three_points(self, x1, y1, x2, y2, x3, y3):
