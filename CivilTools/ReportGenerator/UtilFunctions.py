@@ -228,6 +228,14 @@ class MatrixSolver:
             comp_f -= comp.create_f()
             comp.set_f(comp_f[0][0], comp_f[1][0], comp_f[3][0], comp_f[4][0])
             comp.set_m(comp_f[2][0], comp_f[5][0])
+            comp.set_u(
+                comp_u[0][0],
+                comp_u[1][0],
+                comp_u[2][0],
+                comp_u[3][0],
+                comp_u[4][0],
+                comp_u[5][0],
+            )
         return self.comp_list
 
 
@@ -253,3 +261,60 @@ class ConcreteSolver:
             return result
         else:
             return result[::-1]
+
+    @classmethod
+    def CalculateDisplacement(
+        cls,
+        thickness: float,
+        disp_E: float,
+        cover_thickness: float,
+        concrete: ConcreteLevel,
+        rebar: SteelLevel,
+        As: float,
+        Mq: float,
+    ):
+        Es = rebar.elastic_module
+        Ec = concrete.elastic_module
+        ftk = concrete.ftk
+        h0 = thickness - cover_thickness
+        EI = Ec / 12 * 1000 * (thickness) ** 3
+        rhote = As / (thickness * 1000 / 2)
+        sigmas = Mq * 1000000 / (0.87 * h0 * As)
+        psi = 1.1 - 0.65 * ftk / (rhote * sigmas)
+        psi = max(min(psi, 1), 0.2)
+        alphaE = Es / Ec
+        rho = As / (1000 * h0)
+        Bs = Es * As * (h0) ** 2 / (1.15 * psi + 0.2 + 6 * alphaE * rho / (1 + 3.5 * 0))
+        B = Bs / 1.6
+        disp_P = disp_E * EI / B
+        return float(disp_P)
+
+    @classmethod
+    def CalculateW(
+        cls,
+        moment: float,
+        As: float,
+        thickness: float,
+        cover_thickness: float,
+        concrete: ConcreteLevel,
+        rebar: SteelLevel,
+        rebar_d: float,
+    ):
+        if moment == 0:
+            return 0
+        ftk = concrete.ftk
+        Es = rebar.elastic_module
+        h0 = thickness - cover_thickness
+        rhote = As / (thickness * 1000 / 2)
+        sigmas = abs(moment) * 1000000 / (0.87 * h0 * As)
+        psi = 1.1 - 0.65 * ftk / (rhote * sigmas)
+        psi = max(min(psi, 1), 0.2)
+        alphacr = 1.9  # 普通混凝土受弯构件
+        w = (
+            alphacr
+            * psi
+            * sigmas
+            / Es
+            * (1.9 * cover_thickness + 0.08 * rebar_d / rhote)
+        )
+        return w

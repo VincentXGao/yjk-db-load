@@ -190,6 +190,38 @@ class StairPart:
             ]
         return [0, 0, 0, 10, 20, 10, 0, 0]
 
+    def get_calculate_disp(self) -> List[float]:
+        if self.stair_type == "AT":
+            return [0, 0, self.components[0].u_2_x, self.components[0].u_2_y, 0, 0]
+        elif self.stair_type == "BT":
+            return [
+                self.components[0].u_2_x,
+                self.components[0].u_2_y,
+                self.components[1].u_2_x,
+                self.components[1].u_2_y,
+                0,
+                0,
+            ]
+        elif self.stair_type == "CT":
+            return [
+                0,
+                0,
+                self.components[0].u_2_x,
+                self.components[0].u_2_y,
+                self.components[1].u_2_x,
+                self.components[1].u_2_y,
+            ]
+        elif self.stair_type == "DT":
+            return [
+                self.components[0].u_2_x,
+                self.components[0].u_2_y,
+                self.components[1].u_2_x,
+                self.components[1].u_2_y,
+                self.components[2].u_2_x,
+                self.components[2].u_2_y,
+            ]
+        return [0, -10, 20, -20, 0, -10]
+
     def get_left_slab_table_moments(self):
         moments = self.get_calculate_moments()
         return [0, moments[1] * 0.25, moments[1]]
@@ -232,6 +264,26 @@ class StairPart:
 
         return shear_context
 
+    def get_displacement_validate(self, disp_p, disp_limit):
+        length = self.total_horizental_length
+        limit = length / disp_limit
+        disp_p = abs(disp_p)
+        if disp_p <= limit:
+            context = f"f_{{max}}={disp_p:.2f}mm < [f]={limit:.2f}mm({length:.0f}/{disp_limit:.0f})，挠度满足要求！"
+        else:
+            context = f"f_{{max}}={disp_p:.2f}mm > [f]={limit:.2f}mm({length:.0f}/{disp_limit:.0f})，*{{挠度不满足要求！}}"
+        return context
+
+    def get_w_validate(self, w_list, w_limit):
+        w_max = max(w_list)
+        if w_max < w_limit:
+            context = f"ω_{{max}}={w_max:.2f}mm<[ω]={w_limit:.2f}mm，裂缝满足要求！"
+        else:
+            context = (
+                f"ω_{{max}}={w_max:.2f}mm>[ω]={w_limit:.2f}mm，*{{裂缝不满足要求！}}"
+            )
+        return context
+
     def init_default_data(self):
         self.stair_width = 1500
         self.stair_well_width = 100
@@ -242,7 +294,7 @@ class StairPart:
             StairBeam(300, 500, 0),
         ]
         self.set_thickness(140, 140, 140)
-        self.set_real_rebar(10, 150, 10, 150)
+        self.set_real_rebar(10, 150, 12, 150)
 
     def __init__(self, position: Position, step_num):
         self.position = position

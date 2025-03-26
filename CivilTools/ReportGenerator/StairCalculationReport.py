@@ -6,6 +6,7 @@ from CivilTools.YDBLoader.BuildingDefine.StairPart import (
     LoadParams,
     StairLoad,
     LoadCalulateType,
+    Component,
 )
 from .UtilFunctions import MatrixSolver, ConcreteSolver
 from .DocTable import DocTable
@@ -28,6 +29,39 @@ def analysis_moment_and_rebar(
         total_result.append(result[0])
         total_result.append(result[1])
     return total_result
+
+
+def analysis_w(
+    moments: List[float],
+    current_stair: StairPart,
+    cover_thickness: float,
+    concrete,
+    rebar,
+):
+    w_list = []
+    for moment in moments:
+        if moment < 0:
+            As = current_stair.up_real_rebar_area
+            rebar_d = current_stair.up_d
+        else:
+            As = current_stair.down_real_rebar_area
+            rebar_d = current_stair.down_d
+        w = ConcreteSolver.CalculateW(
+            moment,
+            As,
+            current_stair.main_thick,
+            cover_thickness,
+            concrete,
+            rebar,
+            rebar_d,
+        )
+        if moment < 0:
+            w_list.append(w)
+            w_list.append(0)
+        else:
+            w_list.append(0)
+            w_list.append(w)
+    return w_list
 
 
 def analysis_real_rebar(
@@ -61,6 +95,17 @@ def analysis_real_rebar(
             else:
                 result.append("*{" + down_result + "}")
     return result
+
+
+def get_qe_moment(stair: StairPart, components: List[Component]):
+    if stair.stair_type == "AT":
+        return components[0].m_2
+    elif stair.stair_type == "BT":
+        return components[1].m_2
+    elif stair.stair_type == "CT":
+        return components[0].m_2
+    else:
+        return components[1].m_2
 
 
 class StairCalculationReport(BasicGenerator):
@@ -141,6 +186,11 @@ class StairCalculationReport(BasicGenerator):
             self.left_slab_load.q, self.main_slab_load.q, self.right_slab_load.q
         )
         self.current_stair.set_calculate_result(solver.submit_problem())
+        sover_eq = MatrixSolver(self.current_stair)
+        sover_eq.set_load(
+            self.left_slab_load.qe, self.main_slab_load.qe, self.right_slab_load.qe
+        )
+        self.qe_result_components = sover_eq.submit_problem()
 
     def add_first_part(self):
         # 添加最大的标题
@@ -539,6 +589,34 @@ class StairCalculationReport(BasicGenerator):
         real_rebar_result = analysis_real_rebar(
             self.current_stair, "middle", total_rebar_result
         )
+        disp_limit = (
+            self.current_stair.total_horizental_length / self.displacement_limit
+        )
+        disp_E = self.current_stair.get_calculate_disp()[3]
+        Mq = get_qe_moment(self.current_stair, self.qe_result_components)
+        disp_p = ConcreteSolver.CalculateDisplacement(
+            self.current_stair.main_thick,
+            disp_E,
+            self.cover_thickness,
+            self.concrete_data[self.concrete_level],
+            self.rebar_level,
+            self.current_stair.down_real_rebar_area,
+            Mq,
+        )
+        disp_validate_context = self.current_stair.get_displacement_validate(
+            disp_p, self.displacement_limit
+        )
+
+        w_list = analysis_w(
+            moments,
+            self.current_stair,
+            self.cover_thickness,
+            self.concrete_data[self.concrete_level],
+            self.rebar_level,
+        )
+        w_validate_context = self.current_stair.get_w_validate(
+            w_list, self.crack_width_limit
+        )
         table_context = [
             ["截面位置", "左", "中", "右"],
             ["弯矩(M)", f"{moments[0]:.2f}", f"{moments[1]:.2f}", f"{moments[2]:.2f}"],
@@ -568,11 +646,16 @@ class StairCalculationReport(BasicGenerator):
                 real_rebar_result[3],
                 real_rebar_result[5],
             ],
-            ["挠度限值", f"[f]={self.crack_width_limit:.2f}mm"],
-            ["挠度验算结果", "满足"],
-            ["裂缝宽度", "", "", ""],
+            ["挠度限值", f"[f]={disp_limit:.2f}mm"],
+            ["挠度验算结果", disp_validate_context],
+            [
+                "裂缝宽度",
+                f"{max(w_list[0],w_list[1]):.2f}mm",
+                f"{max(w_list[2],w_list[3]):.2f}mm",
+                f"{max(w_list[4],w_list[5]):.2f}mm",
+            ],
             ["裂缝限值", f"[ω]={self.crack_width_limit:.2f}mm"],
-            ["裂缝验算结果", ""],
+            ["裂缝验算结果", w_validate_context],
         ]
         cal_table.set_table_context(table_context)
         self.add_table(cal_table)

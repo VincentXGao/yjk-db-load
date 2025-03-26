@@ -90,6 +90,14 @@ class Component:
         self.m_1 = m_1 / 1e6
         self.m_2 = m_2 / 1e6
 
+    def set_u(self, u1x, u1y, u1r, u2x, u2y, u2r):
+        self.u_1_x = u1x
+        self.u_1_y = u1y
+        self.u_1_r = u1r
+        self.u_2_x = u2x
+        self.u_2_y = u2y
+        self.u_2_r = u2r
+
     @property
     def v1(self):
         return self.f_1_y * np.cos(self.alpha) - self.f_1_x * np.sin(self.alpha)
