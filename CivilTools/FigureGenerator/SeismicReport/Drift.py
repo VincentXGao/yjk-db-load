@@ -32,6 +32,9 @@ class DriftPlotter(SeismicPlotter):
         self._ax2_x = 1 / np.array(seismic_x)
         self._ax2_y = 1 / np.array(seismic_y)
 
+    def set_limit(self, limit: float):
+        self.__limit = limit
+
     def plot(self):
         if self.__limit:
             self.__plot_limit()
@@ -55,8 +58,32 @@ class DriftPlotter(SeismicPlotter):
             self.axes[i].set_yticks(self._y_major_ticks)
             self.axes[i].set_yticks(self._y_minor_ticks, minor=True)
             x_ticks = GetTicks(xmaxs[i])
+            x_ticks = self.__shrink_x_ticks(x_ticks)
             self.axes[i].set_xticks(x_ticks)
-            # self.axes[i].set_xticklabels([f"{i*100:.1f}%" for i in x_ticks])
+            X_ticklabels = [0] + ["1/%d" % (1 / s) for s in x_ticks[1:]]
+            self.axes[i].set_xticklabels(X_ticklabels)
+
+    def __shrink_x_ticks(self, x_ticks):
+        if len(x_ticks) <= 4:
+            return x_ticks
+        new_x_ticks = []
+        for i in range(len(x_ticks)):
+            if i % 2 == 0:
+                new_x_ticks.append(x_ticks[i])
+        return new_x_ticks
+
+    def __plot_limit(self):
+        limitation = self.__limit
+        for ax in self.axes:
+            ax.vlines(
+                x=1 / limitation,
+                ymin=0,
+                ymax=self.floor_num,
+                color="r",
+                linewidth=3,
+                ls="--",
+                label=f"限值1/{limitation}",
+            )
 
     def __add_titles(self):
         self.axes[0].set_ylabel(self.y_label)
