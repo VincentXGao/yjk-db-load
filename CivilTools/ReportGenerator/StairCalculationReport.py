@@ -7,10 +7,60 @@ from CivilTools.YDBLoader.BuildingDefine.StairPart import (
     StairLoad,
     LoadCalulateType,
 )
-from .UtilFunctions import MatrixSolver
+from .UtilFunctions import MatrixSolver, ConcreteSolver
 from .DocTable import DocTable
 from .DocPicture import DocPicture
 from .DocParagraph import DocParagraph
+from typing import List
+from CivilTools.Const import Concrete, Steel
+
+
+def analysis_moment_and_rebar(
+    moments: List[float], thickness, rebar_d, cover_thickness, concrete, rebar
+):
+    if len(moments) != 3:
+        raise ValueError("Length of Stair Moment Reult should be 3.")
+    total_result = []
+    for moment in moments:
+        result = ConcreteSolver.CalculateRebar(
+            moment, thickness, rebar_d, cover_thickness, concrete, rebar
+        )
+        total_result.append(result[0])
+        total_result.append(result[1])
+    return total_result
+
+
+def analysis_real_rebar(
+    stair_part: StairPart, part: str, cal_rabar_area_list: List[float]
+):
+    if part == "left":
+        thick = stair_part.left_thick
+    elif part == "right":
+        thick = stair_part.right_thick
+    else:
+        thick = stair_part.main_thick
+    up_rebar = stair_part.up_real_rebar
+    up_rebar_area = stair_part.up_real_rebar_area
+    up_ratio = up_rebar_area / 1000 / thick
+    down_rebar = stair_part.down_real_rebar
+    down_rebar_area = stair_part.down_real_rebar_area
+    down_ratio = down_rebar_area / 1000 / thick
+
+    up_result = f"{up_rebar}({up_rebar_area:.1f},{up_ratio*100:.2f}%)"
+    down_result = f"{down_rebar}({down_rebar_area:.1f},{down_ratio*100:.2f}%)"
+    result = []
+    for i in range(len(cal_rabar_area_list)):
+        if i % 2 == 0:
+            if cal_rabar_area_list[i] <= up_rebar_area:
+                result.append(up_result)
+            else:
+                result.append("*{" + up_result + "}")
+        else:
+            if cal_rabar_area_list[i] <= down_rebar_area:
+                result.append(down_result)
+            else:
+                result.append("*{" + down_result + "}")
+    return result
 
 
 class StairCalculationReport(BasicGenerator):
@@ -36,34 +86,19 @@ class StairCalculationReport(BasicGenerator):
         self.symbol_explain = "钢筋：d-HPB300；D-HRB335；E-HRB400；F-RRB400；G-HRB500；Q-HRBF400；R-HRB550"
         self.cut_line = "---------------------------------------------------------------------------------------------"
         self.concrete_data = {
-            30: [14.3, 1.43, 2.01, 30000],  # // fc, ft, ftk, E
-            35: [16.7, 1.57, 2.20, 31500],  # // fc, ft, ftk, E
-            40: [19.1, 1.71, 2.39, 32500],  # // fc, ft, ftk, E
+            30: Concrete.C30,  # // fc, ft, ftk, E
+            35: Concrete.C35,  # // fc, ft, ftk, E
+            40: Concrete.C40,  # // fc, ft, ftk, E
         }
         self.concrete_density = 25
-        self.rebar_level = "HRB400"
-        self.rebar_fy = 360
+        self.rebar_level = Steel.HRB400
         self.indent = 0.22
         self.normal_font_size = 11
 
     # 数据入口！！！！
-    def set_stair_data(self):
+    def set_stair_data(self, stair_list: List[StairPart]):
         """这个函数需要重写！！！！！是数据流入的最主要的入口"""
-        position1 = Position(0, 2180, 0, 1910, 5030, 6850)
-        sp1 = StairPart(position1, 13)
-        sp1.left_thick = sp1.main_thick = sp1.right_thick = 130
-        position2 = Position(0, 2180, 0, 1910, 5030, 6850)
-        sp2 = StairPart(position2, 13)
-        sp2.set_beam_offset(1, 500)
-        position3 = Position(0, 2180, 0, 1910, 5030, 6850)
-        sp3 = StairPart(position3, 13)
-        sp3.set_beam_offset(2, 500)
-        position4 = Position(0, 2180, 0, 1910, 5030, 6850)
-        sp4 = StairPart(position4, 13)
-        sp4.set_beam_offset(1, 500)
-        sp4.set_beam_offset(2, 500)
-
-        self.stair_list = [sp1, sp2, sp3, sp4]
+        self.stair_list = stair_list
 
     # 数据入口！！！！
     def set_calculate_info(self):
@@ -161,7 +196,6 @@ class StairCalculationReport(BasicGenerator):
 
         # 进行必要的计算
         self.load_calculate()
-
         self.do_the_math()
 
         # 添加part1已知条件
@@ -236,22 +270,22 @@ class StairCalculationReport(BasicGenerator):
             f"活载准永久值系数：{self.load_param.live_load_permenent_coef}"
         )
         self.add_paragraph(doc_par)
-        doc_par.context = f"混凝土等级：C{self.concrete_level}，f_{{c}} ={self.concrete_data[self.concrete_level][0]:.2f}MPa"
+        doc_par.context = f"混凝土等级：C{self.concrete_level}，f_{{c}} ={self.concrete_data[self.concrete_level].fc:.2f}MPa"
         self.add_paragraph(doc_par)
         doc_par.context = f"混凝土容重：{self.concrete_density:.2f}kN/mm^{{3}}"
         self.add_paragraph(doc_par)
         doc_par.context = f"配筋调整系数：{self.rebar_area_adjust_coef:.2f}；纵筋保护层厚度：c={self.cover_thickness}mm"
         self.add_paragraph(doc_par)
         doc_par.context = (
-            f"梯板纵筋等级：{self.rebar_level}；f_{{y}} ={self.rebar_fy}MPa"
+            f"梯板纵筋等级：{self.rebar_level.name}；f_{{y}} ={self.rebar_level.fy}MPa"
         )
         self.add_paragraph(doc_par)
         doc_par.context = (
-            f"梯梁纵筋等级：{self.rebar_level}；f_{{y}} ={self.rebar_fy}MPa"
+            f"梯梁纵筋等级：{self.rebar_level.name}；f_{{y}} ={self.rebar_level.fy}MPa"
         )
         self.add_paragraph(doc_par)
         doc_par.context = (
-            f"梯梁箍筋等级：{self.rebar_level}；f_{{y}} ={self.rebar_fy}MPa"
+            f"梯梁箍筋等级：{self.rebar_level.name}；f_{{y}} ={self.rebar_level.fy}MPa"
         )
         self.add_paragraph(doc_par)
 
@@ -397,7 +431,9 @@ class StairCalculationReport(BasicGenerator):
         doc_par.context = "弯        矩：kN·m\t\t剪        力：kN/m\t\t挠        度：mm"
         doc_par.first_line_indent = indent
         self.add_paragraph(doc_par)
-        doc_par.context = r"纵筋面积：mm^{2}/m\t\t截面尺寸：mm×mm\t\t裂        缝：mm"
+        doc_par.context = (
+            r"纵筋面积：mm^{2}/m" + "\t\t截面尺寸：mm×mm\t\t裂        缝：mm"
+        )
         self.add_paragraph(doc_par)
 
         self.add_blank_paragraph()
@@ -415,7 +451,7 @@ class StairCalculationReport(BasicGenerator):
 
     def insert_calculate_table(self):
         table_index = 1
-        ft = self.concrete_data[self.concrete_level][1]
+        ft = self.concrete_data[self.concrete_level].ft
         if (
             self.current_stair.stair_type == "BT"
             or self.current_stair.stair_type == "DT"
@@ -430,6 +466,17 @@ class StairCalculationReport(BasicGenerator):
             shear_context = self.current_stair.get_shear_validate(
                 "left", ft, self.cover_thickness
             )
+            total_rebar_result = analysis_moment_and_rebar(
+                moments,
+                self.current_stair.left_thick,
+                self.current_stair.down_d,
+                self.cover_thickness,
+                self.concrete_data[self.concrete_level],
+                self.rebar_level,
+            )
+            real_rebar_result = analysis_real_rebar(
+                self.current_stair, "left", total_rebar_result
+            )
 
             table_context = [
                 ["截面位置", "左", "中", "右"],
@@ -441,10 +488,30 @@ class StairCalculationReport(BasicGenerator):
                 ],
                 ["剪力(V)", f"{shears[0]:.2f}", f"{shears[1]:.2f}", f"{shears[2]:.2f}"],
                 ["抗剪截面验算", shear_context],
-                ["上部计算纵筋As'", "", "", ""],
-                ["下部计算纵筋As", "", "", ""],
-                ["上部纵筋实配", "", "", ""],
-                ["下部纵筋实配", "", "", ""],
+                [
+                    "上部计算纵筋As'",
+                    f"{total_rebar_result[0]:.1f}",
+                    f"{total_rebar_result[2]:.1f}",
+                    f"{total_rebar_result[4]:.1f}",
+                ],
+                [
+                    "下部计算纵筋As",
+                    f"{total_rebar_result[1]:.1f}",
+                    f"{total_rebar_result[3]:.1f}",
+                    f"{total_rebar_result[5]:.1f}",
+                ],
+                [
+                    "上部纵筋实配",
+                    real_rebar_result[0],
+                    real_rebar_result[2],
+                    real_rebar_result[4],
+                ],
+                [
+                    "下部纵筋实配",
+                    real_rebar_result[1],
+                    real_rebar_result[3],
+                    real_rebar_result[5],
+                ],
             ]
             left_table.set_table_context(table_context)
             self.add_table(left_table)
@@ -461,16 +528,46 @@ class StairCalculationReport(BasicGenerator):
         shear_context = self.current_stair.get_shear_validate(
             "main", ft, self.cover_thickness
         )
-
+        total_rebar_result = analysis_moment_and_rebar(
+            moments,
+            self.current_stair.main_thick,
+            self.current_stair.down_d,
+            self.cover_thickness,
+            self.concrete_data[self.concrete_level],
+            self.rebar_level,
+        )
+        real_rebar_result = analysis_real_rebar(
+            self.current_stair, "middle", total_rebar_result
+        )
         table_context = [
             ["截面位置", "左", "中", "右"],
             ["弯矩(M)", f"{moments[0]:.2f}", f"{moments[1]:.2f}", f"{moments[2]:.2f}"],
             ["剪力(V)", f"{shears[0]:.2f}", f"{shears[1]:.2f}", f"{shears[2]:.2f}"],
             ["抗剪截面验算", shear_context],
-            ["上部计算纵筋As'", "", "", ""],
-            ["下部计算纵筋As", "", "", ""],
-            ["上部纵筋实配", "", "", ""],
-            ["下部纵筋实配", "", "", ""],
+            [
+                "上部计算纵筋As'",
+                f"{total_rebar_result[0]:.1f}",
+                f"{total_rebar_result[2]:.1f}",
+                f"{total_rebar_result[4]:.1f}",
+            ],
+            [
+                "下部计算纵筋As",
+                f"{total_rebar_result[1]:.1f}",
+                f"{total_rebar_result[3]:.1f}",
+                f"{total_rebar_result[5]:.1f}",
+            ],
+            [
+                "上部纵筋实配",
+                real_rebar_result[0],
+                real_rebar_result[2],
+                real_rebar_result[4],
+            ],
+            [
+                "下部纵筋实配",
+                real_rebar_result[1],
+                real_rebar_result[3],
+                real_rebar_result[5],
+            ],
             ["挠度限值", f"[f]={self.crack_width_limit:.2f}mm"],
             ["挠度验算结果", "满足"],
             ["裂缝宽度", "", "", ""],
@@ -496,7 +593,17 @@ class StairCalculationReport(BasicGenerator):
             shear_context = self.current_stair.get_shear_validate(
                 "right", ft, self.cover_thickness
             )
-
+            total_rebar_result = analysis_moment_and_rebar(
+                moments,
+                self.current_stair.right_thick,
+                self.current_stair.down_d,
+                self.cover_thickness,
+                self.concrete_data[self.concrete_level],
+                self.rebar_level,
+            )
+            real_rebar_result = analysis_real_rebar(
+                self.current_stair, "right", total_rebar_result
+            )
             table_context = [
                 ["截面位置", "左", "中", "右"],
                 [
@@ -507,10 +614,30 @@ class StairCalculationReport(BasicGenerator):
                 ],
                 ["剪力(V)", f"{shears[0]:.2f}", f"{shears[1]:.2f}", f"{shears[2]:.2f}"],
                 ["抗剪截面验算", shear_context],
-                ["上部计算纵筋As'", "", "", ""],
-                ["下部计算纵筋As", "", "", ""],
-                ["上部纵筋实配", "", "", ""],
-                ["下部纵筋实配", "", "", ""],
+                [
+                    "上部计算纵筋As'",
+                    f"{total_rebar_result[0]:.1f}",
+                    f"{total_rebar_result[2]:.1f}",
+                    f"{total_rebar_result[4]:.1f}",
+                ],
+                [
+                    "下部计算纵筋As",
+                    f"{total_rebar_result[1]:.1f}",
+                    f"{total_rebar_result[3]:.1f}",
+                    f"{total_rebar_result[5]:.1f}",
+                ],
+                [
+                    "上部纵筋实配",
+                    real_rebar_result[0],
+                    real_rebar_result[2],
+                    real_rebar_result[4],
+                ],
+                [
+                    "下部纵筋实配",
+                    real_rebar_result[1],
+                    real_rebar_result[3],
+                    real_rebar_result[5],
+                ],
             ]
             right_table.set_table_context(table_context)
 

@@ -2,6 +2,8 @@ from docx.oxml.xmlchemy import BaseOxmlElement
 from docx.oxml.ns import qn, nsdecls
 from CivilTools.YDBLoader.BuildingDefine.StairPart import StairPart, Component
 import numpy as np
+from CivilTools.Const import ConcreteLevel, SteelLevel
+from typing import List
 
 
 # 网上找的代码，有点东西
@@ -227,3 +229,27 @@ class MatrixSolver:
             comp.set_f(comp_f[0][0], comp_f[1][0], comp_f[3][0], comp_f[4][0])
             comp.set_m(comp_f[2][0], comp_f[5][0])
         return self.comp_list
+
+
+class ConcreteSolver:
+    @classmethod
+    def CalculateRebar(
+        cls,
+        moment: float,
+        thickness: float,
+        rebar_d: float,
+        cover_thickness: float,
+        concrete: ConcreteLevel,
+        rebar: SteelLevel,
+        min_rebar_ratio: float = 0.002,
+    ) -> List[float]:
+        h0 = thickness - rebar_d / 2 - cover_thickness
+        alpha_s = abs(moment) * 1000000 / concrete.fc / 1000 / h0 / h0
+        temp_yita = 1 - (1 - 2 * alpha_s) ** 0.5
+        rebar_cal = temp_yita * concrete.fc * 1000 * h0 / rebar.fy
+        rebar_min = thickness * min_rebar_ratio * 1000
+        result = [max(rebar_cal, rebar_min), rebar_min]
+        if moment < 0:
+            return result
+        else:
+            return result[::-1]

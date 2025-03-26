@@ -7,9 +7,9 @@
             "request": "launch",
             "module": "pytest",
             "args": [
-                ".\\tests\\reportGenerator\\test_seismic_report.py"
+                ".\\tests\\reportGenerator\\test_stair_calculation_report.py"
             ],
-            "console": "externalTerminal"
+            "console": "integratedTerminal"
         },
         {
             "name": "Python: pytest-all",
@@ -17,7 +17,7 @@
             "request": "launch",
             "module": "pytest",
             "args": [],
-            "console": "externalTerminal"
+            "console": "integratedTerminal"
         },
         {
             "name": "Python: pytest-one",

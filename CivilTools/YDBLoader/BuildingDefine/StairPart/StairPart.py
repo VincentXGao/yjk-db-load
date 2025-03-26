@@ -111,12 +111,20 @@ class StairPart:
         ]
 
     @property
-    def up_real_rebar_str(self):
+    def up_real_rebar(self):
         return f"E{self.up_d:d}@{self.up_dis:d}"
 
     @property
     def up_real_rebar_area(self):
-        return f"{(self.up_d*self.up_d * math.pi/4/self.up_dis):.3f}"
+        return self.up_d * self.up_d * math.pi / 4 / self.up_dis * 1000
+
+    @property
+    def down_real_rebar(self):
+        return f"E{self.down_d:d}@{self.down_dis:d}"
+
+    @property
+    def down_real_rebar_area(self):
+        return self.down_d * self.down_d * math.pi / 4 / self.down_dis * 1000
 
     def get_calculate_moments(self) -> List[float]:
         if self.stair_type == "AT":
@@ -218,9 +226,9 @@ class StairPart:
             shear_limit = 0.7 * 1 * ft * (self.main_thick - cover_thick) * 1000 / 1000
         max_shear = max([abs(i) for i in shears])
         if max_shear <= shear_limit:
-            shear_context = f"Vmax={max_shear:.2f}kN < 0.7βhftbh0={shear_limit:.2f}kN，抗剪截面满足要求！"
+            shear_context = f"V_{{max}}={max_shear:.2f} kN < 0.7β_{{h}}f_{{t}}bh_{{0}}={shear_limit:.2f} kN，抗剪截面满足要求！"
         else:
-            shear_context = f"Vmax={max_shear:.2f}kN > 0.7βhftbh0={shear_limit:.2f}kN，抗剪截面不满足要求！"
+            shear_context = f"V_{{max}}={max_shear:.2f} kN > 0.7β_{{h}}f_{{t}}bh_{{0}}={shear_limit:.2f} kN，*{{抗剪截面不满足要求！}}"
 
         return shear_context
 
