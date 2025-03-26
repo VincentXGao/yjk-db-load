@@ -31,10 +31,10 @@ class TestUtilFunctions(unittest.TestCase):
         sp4.set_beam_offset(1, 500)
         sp4.set_beam_offset(2, 500)
 
-        # creator.set_stair_data([sp1, sp2])
-        # creator.set_calculate_info()
-        # creator.create()
-        # creator.save_to_file("testfiles/stair_calculation_report.docx")
+        creator.set_stair_data([sp1, sp2])
+        creator.set_calculate_info()
+        creator.create()
+        creator.save_to_file("testfiles/stair_calculation_report.docx")
 
     def test_stair_figure_plot(self):
         position1 = Position(0, 2180, 0, 1910, 5030, 6850)
@@ -53,7 +53,6 @@ class TestUtilFunctions(unittest.TestCase):
         i = 1
         for sp in [sp1, sp2, sp3, sp4]:
             plotter = StairCalculationSheetPNGPlotter(sp)
-            plotter.plot_moment(
-                f"testfiles/stair_plot/test_moment_{i}.png", [0, -100, 500, -100, 0]
-            )
+            plotter.plot_moment([0, -100, 500, -100, 0])
+            plotter.save(f"testfiles/stair_plot/test_moment_{i}.png")
             i += 1

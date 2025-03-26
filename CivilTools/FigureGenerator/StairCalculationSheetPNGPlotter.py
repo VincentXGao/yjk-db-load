@@ -17,7 +17,7 @@ class StairCalculationSheetPNGPlotter:
 
         self.__plot_basic_stair()
 
-    def plot_moment(self, path, moments: List[float]):
+    def plot_moment(self, moments: List[float]):
         start_x = self.start_x
         end_x = self.end_x
         start_y = self.start_y
@@ -78,6 +78,31 @@ class StairCalculationSheetPNGPlotter:
             self.__draw_moment_curve(
                 end_x - 500, end_y, end_x, end_y, moment_height_3, moment_3, False
             )
+
+    def plot_shear(self, shears: List[float]):
+        start_x = self.start_x
+        end_x = self.end_x
+        start_y = self.start_y
+        end_y = self.end_y
+        shear_max = max([abs(i) for i in shears])
+        # 用来确定弯矩最大值处的高度
+        shear_height = [s / shear_max * 400 for s in shears]
+        # todo: 具体绘图
+
+    def plot_displacement(self, disp: List[float]):
+        start_x = self.start_x
+        end_x = self.end_x
+        start_y = self.start_y
+        end_y = self.end_y
+        disp_max = max([abs(i) for i in disp])
+        # 用来确定弯矩最大值处的高度
+        disp_height = [s / disp_max * 400 for s in disp]
+        # todo: 具体绘图
+
+    def to_stream(self):
+        return self.plotter.to_stream()
+
+    def save(self, path):
         self.plotter.save(path)
 
     def __plot_basic_stair(self):

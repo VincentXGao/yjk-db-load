@@ -1,6 +1,7 @@
 from PIL import Image, ImageDraw, ImageFont
 import warnings
 import math
+import io
 
 
 def draw_rotated_text(
@@ -115,6 +116,16 @@ class BasicPNGPlotter:
 
     def save(self, path):
         self.image.save(path, "PNG")
+
+    def to_stream(self):
+        # 将图片保存到内存中的 BytesIO 对象
+        img_buffer = io.BytesIO()
+        self.image.save(img_buffer, "PNG")  # 保存为 PNG 格式
+        del self.image
+        del self.draw  # 关闭图形，释放内存
+        # 将指针重置到流的开头，以便后续读取
+        img_buffer.seek(0)
+        return img_buffer
 
 
 if __name__ == "__main__":

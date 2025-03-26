@@ -2,13 +2,21 @@ from enum import Enum
 
 
 class LoadParams:
-    def __init__(self):
-        self.append_dead_load = 1
-        self.live_load = 3.5
-        self.dead_load_coef = 1.3
-        self.live_load_coef = 1.5
-        self.live_load_adjust_coef = 1
-        self.live_load_permenent_coef = 0.5
+    def __init__(
+        self,
+        append_dead_load: float = 1,
+        live_load: float = 3.5,
+        dead_load_coef: float = 1.3,
+        live_load_coef: float = 1.5,
+        live_load_adjust_coef=1,
+        live_load_permenent_coef=0.5,
+    ):
+        self.append_dead_load = append_dead_load
+        self.live_load = live_load
+        self.dead_load_coef = dead_load_coef
+        self.live_load_coef = live_load_coef
+        self.live_load_adjust_coef = live_load_adjust_coef
+        self.live_load_permenent_coef = live_load_permenent_coef
 
 
 class LoadType(Enum):

@@ -14,6 +14,7 @@ from .DocPicture import DocPicture
 from .DocParagraph import DocParagraph
 from typing import List
 from CivilTools.Const import Concrete, Steel
+from CivilTools.FigureGenerator import StairCalculationSheetPNGPlotter
 
 
 def analysis_moment_and_rebar(
@@ -147,7 +148,8 @@ class StairCalculationReport(BasicGenerator):
 
     # 数据入口！！！！
     def set_calculate_info(self):
-        self.load_param = LoadParams()
+        # 荷载相关的入口
+        self.load_param = LoadParams(1, 3.5)
         self.concrete_level = 30
         self.rebar_area_adjust_coef = 1
         self.cover_thickness = 15
@@ -252,6 +254,7 @@ class StairCalculationReport(BasicGenerator):
         self.add_1_basic_info()
         self.add_2_load_and_calculate()
         self.add_3_result()
+        self.draw_plots()
         self.add_blank_paragraph()
 
     def add_1_basic_info(self):
@@ -485,18 +488,13 @@ class StairCalculationReport(BasicGenerator):
             r"纵筋面积：mm^{2}/m" + "\t\t截面尺寸：mm×mm\t\t裂        缝：mm"
         )
         self.add_paragraph(doc_par)
-
         self.add_blank_paragraph()
         doc_par.context = "板段配筋计算结果："
         doc_par.first_line_indent = 0
         self.add_paragraph(doc_par)
         doc_par.context = "---------------------------------------------------------------------------------------------"
         self.add_paragraph(doc_par)
-
         self.insert_calculate_table()
-
-        # self.insert_all_pictures()
-
         self.add_blank_paragraph()
 
     def insert_calculate_table(self):
@@ -726,6 +724,27 @@ class StairCalculationReport(BasicGenerator):
 
             self.add_table(right_table)
             table_index += 1
+
+    def draw_plots(self):
+        plotter = StairCalculationSheetPNGPlotter(self.current_stair)
+        plotter.plot_moment(self.current_stair.get_calculate_moments())
+        moment_figure = DocPicture(plotter.to_stream(), width=12)
+        self.add_picture(moment_figure)
+
+        plotter = StairCalculationSheetPNGPlotter(self.current_stair)
+        plotter.plot_moment(self.current_stair.get_calculate_moments())
+        moment_figure = DocPicture(plotter.to_stream(), width=12)
+        self.add_picture(moment_figure)
+
+        plotter = StairCalculationSheetPNGPlotter(self.current_stair)
+        plotter.plot_moment(self.current_stair.get_calculate_moments())
+        moment_figure = DocPicture(plotter.to_stream(), width=12)
+        self.add_picture(moment_figure)
+
+        plotter = StairCalculationSheetPNGPlotter(self.current_stair)
+        plotter.plot_moment(self.current_stair.get_calculate_moments())
+        moment_figure = DocPicture(plotter.to_stream(), width=12)
+        self.add_picture(moment_figure)
 
     def create(self):
         self.add_first_part()
