@@ -1,10 +1,12 @@
 from setuptools import setup, find_packages
 
+import CivilTools
+
 setup(
     name="civil_tools_v",  # 包的名称
-    version="0.0.5",  # 包的版本号
-    author="Xinyu Gao (Vincent)",  # 作者姓名
-    author_email="just_gxy@163.com",  # 作者邮箱
+    version=CivilTools.__version__,  # 包的版本号
+    author=CivilTools.__author__,  # 作者姓名
+    author_email=CivilTools.__author_email__,  # 作者邮箱
     description="A powerful tool for civil engineer in their work.",  # 包的简短描述
     long_description=open("README.md", encoding="utf-8").read(),  # 包的详细描述
     long_description_content_type="text/markdown",  # 详细描述的内容类型
