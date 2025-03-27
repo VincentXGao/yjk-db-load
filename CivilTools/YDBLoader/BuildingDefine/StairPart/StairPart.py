@@ -293,7 +293,7 @@ class StairPart:
             StairBeam(300, 500, 0),
             StairBeam(300, 500, 0),
         ]
-        self.set_thickness(140, 140, 140)
+        self.set_thickness(120, 120, 120)
         self.set_real_rebar(10, 150, 12, 150)
 
     def __init__(self, position: Position, step_num):

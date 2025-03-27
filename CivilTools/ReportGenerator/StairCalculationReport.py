@@ -140,6 +140,17 @@ class StairCalculationReport(BasicGenerator):
         self.rebar_level = Steel.HRB400
         self.indent = 0.22
         self.normal_font_size = 11
+        self.__clear_result()
+
+    def __clear_result(self):
+        self.left_calculate_rebar = None
+        self.middle_calculate_rebar = None
+        self.right_calculate_rabar = None
+        self.left_real_rebar = None
+        self.middle_real_rebar = None
+        self.right_real_rabar = None
+        self.disp_plastic = 0
+        self.crack_width = None
 
     # 数据入口！！！！
     def set_stair_data(self, stair_list: List[StairPart]):
@@ -522,9 +533,12 @@ class StairCalculationReport(BasicGenerator):
                 self.concrete_data[self.concrete_level],
                 self.rebar_level,
             )
+
             real_rebar_result = analysis_real_rebar(
                 self.current_stair, "left", total_rebar_result
             )
+            self.left_calculate_rebar = total_rebar_result
+            self.left_real_rebar = real_rebar_result
 
             table_context = [
                 ["截面位置", "左", "中", "右"],
@@ -587,6 +601,8 @@ class StairCalculationReport(BasicGenerator):
         real_rebar_result = analysis_real_rebar(
             self.current_stair, "middle", total_rebar_result
         )
+        self.middle_calculate_rebar = total_rebar_result
+        self.middle_real_rebar = real_rebar_result
         disp_limit = (
             self.current_stair.total_horizental_length / self.displacement_limit
         )
@@ -615,6 +631,8 @@ class StairCalculationReport(BasicGenerator):
         w_validate_context = self.current_stair.get_w_validate(
             w_list, self.crack_width_limit
         )
+        self.crack_width = w_list
+        self.disp_plastic = disp_p
         table_context = [
             ["截面位置", "左", "中", "右"],
             ["弯矩(M)", f"{moments[0]:.2f}", f"{moments[1]:.2f}", f"{moments[2]:.2f}"],
@@ -648,9 +666,9 @@ class StairCalculationReport(BasicGenerator):
             ["挠度验算结果", disp_validate_context],
             [
                 "裂缝宽度",
-                f"{max(w_list[0],w_list[1]):.2f}mm",
-                f"{max(w_list[2],w_list[3]):.2f}mm",
-                f"{max(w_list[4],w_list[5]):.2f}mm",
+                f"{max(w_list[0],w_list[1]):.3f}mm",
+                f"{max(w_list[2],w_list[3]):.3f}mm",
+                f"{max(w_list[4],w_list[5]):.3f}mm",
             ],
             ["裂缝限值", f"[ω]={self.crack_width_limit:.2f}mm"],
             ["裂缝验算结果", w_validate_context],
@@ -685,6 +703,8 @@ class StairCalculationReport(BasicGenerator):
             real_rebar_result = analysis_real_rebar(
                 self.current_stair, "right", total_rebar_result
             )
+            self.right_calculate_rebar = total_rebar_result
+            self.right_real_rebar = real_rebar_result
             table_context = [
                 ["截面位置", "左", "中", "右"],
                 [
@@ -726,31 +746,76 @@ class StairCalculationReport(BasicGenerator):
             table_index += 1
 
     def draw_plots(self):
+        self.__prepare_draw_data()
+        plot_width = 11
         plotter = StairCalculationSheetPNGPlotter(self.current_stair)
         plotter.plot_moment(self.current_stair.get_calculate_moments())
-        moment_figure = DocPicture(plotter.to_stream(), width=12)
+        moment_figure = DocPicture(plotter.to_stream(), width=plot_width)
         self.add_picture(moment_figure)
 
         plotter = StairCalculationSheetPNGPlotter(self.current_stair)
-        plotter.plot_moment(self.current_stair.get_calculate_moments())
-        moment_figure = DocPicture(plotter.to_stream(), width=12)
-        self.add_picture(moment_figure)
+        shears = self.current_stair.get_calculate_shears()
+        plotter.plot_shear(shears[:3] + shears[-3:])
+        shear_figure = DocPicture(plotter.to_stream(), width=plot_width)
+        self.add_picture(shear_figure)
 
         plotter = StairCalculationSheetPNGPlotter(self.current_stair)
-        plotter.plot_moment(self.current_stair.get_calculate_moments())
-        moment_figure = DocPicture(plotter.to_stream(), width=12)
-        self.add_picture(moment_figure)
+        plotter.plot_calculate_rebar_area(
+            self.left_calculate_rebar,
+            self.middle_calculate_rebar,
+            self.right_calculate_rabar,
+        )
+        cal_rebar_figure = DocPicture(plotter.to_stream(), width=plot_width)
+        self.add_picture(cal_rebar_figure)
 
         plotter = StairCalculationSheetPNGPlotter(self.current_stair)
-        plotter.plot_moment(self.current_stair.get_calculate_moments())
-        moment_figure = DocPicture(plotter.to_stream(), width=12)
-        self.add_picture(moment_figure)
+        plotter.plot_real_rebar(
+            self.left_real_rebar, self.middle_real_rebar, self.right_real_rabar
+        )
+        real_rebar_figure = DocPicture(plotter.to_stream(), width=plot_width)
+        self.add_picture(real_rebar_figure)
+
+        plotter = StairCalculationSheetPNGPlotter(self.current_stair)
+        plotter.plot_displacement(self.disp_plastic)
+        disp_figure = DocPicture(plotter.to_stream(), width=plot_width)
+        self.add_picture(disp_figure)
+
+        plotter = StairCalculationSheetPNGPlotter(self.current_stair)
+        plotter.plot_crack(self.crack_width)
+        crack_figure = DocPicture(plotter.to_stream(), width=plot_width)
+        self.add_picture(crack_figure)
+
+    def __prepare_draw_data(self):
+        if self.current_stair.left_extend_length > 0:
+            self.left_calculate_rebar[2] = -999
+            self.left_real_rebar = [i.split("(")[0] for i in self.left_real_rebar]
+            self.left_real_rebar[0] = ""
+            self.left_real_rebar[1] = ""
+            self.left_real_rebar[4] = ""
+            self.left_real_rebar[5] = ""
+
+        if self.current_stair.right_extend_length > 0:
+            self.right_calculate_rebar[2] = -999
+            self.right_real_rebar = [i.split("(")[0] for i in self.right_real_rebar]
+            self.right_real_rebar[0] = ""
+            self.right_real_rebar[1] = ""
+            self.right_real_rebar[4] = ""
+            self.right_real_rebar[5] = ""
+
+        self.middle_calculate_rebar[2] = -999
+        self.middle_real_rebar = [i.split("(")[0] for i in self.middle_real_rebar]
+        self.middle_real_rebar[1] = ""
+        self.middle_real_rebar[2] = ""
+        self.middle_real_rebar[5] = ""
+
+        self.crack_width = [f"{i:.3f}mm" if i > 0 else "" for i in self.crack_width]
 
     def create(self):
         self.add_first_part()
         for i in range(len(self.stair_list)):
             stair = self.stair_list[i]
             self.add_single_stair(stair, i + 1)
+            self.__clear_result()
             if i < len(self.stair_list) - 1:
                 self.add_page_break()
 

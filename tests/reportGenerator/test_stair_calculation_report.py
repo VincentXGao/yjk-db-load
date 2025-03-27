@@ -31,10 +31,10 @@ class TestUtilFunctions(unittest.TestCase):
         sp4.set_beam_offset(1, 500)
         sp4.set_beam_offset(2, 500)
 
-        # creator.set_stair_data([sp1, sp2])
-        # creator.set_calculate_info()
-        # creator.create()
-        # creator.save_to_file("testfiles/stair_calculation_report.docx")
+        creator.set_stair_data([sp1, sp2])
+        creator.set_calculate_info()
+        creator.create()
+        creator.save_to_file("testfiles/stair_calculation_report.docx")
 
     def test_stair_figure_plot(self):
         position1 = Position(0, 2180, 0, 1910, 5030, 6850)
@@ -52,7 +52,20 @@ class TestUtilFunctions(unittest.TestCase):
         sp4.set_beam_offset(2, 500)
         i = 1
         for sp in [sp1, sp2, sp3, sp4]:
-            plotter = StairCalculationSheetPNGPlotter(sp)
-            plotter.plot_moment([0, -200, 500, -200, 0])
-            plotter.save(f"testfiles/stair_plot/test_shear_{i}.png")
+            # plotter = StairCalculationSheetPNGPlotter(sp)
+            # plotter.plot_moment([0, -200, 500, -200, 0])
+            # plotter.save(f"testfiles/stair_plot/test_moment_{i}.png")
+
+            # plotter = StairCalculationSheetPNGPlotter(sp)
+            # plotter.plot_shear([0, -200, 500, -200, -200, 330])
+            # plotter.save(f"testfiles/stair_plot/test_shear_{i}.png")
+
+            # plotter = StairCalculationSheetPNGPlotter(sp)
+            # plotter.plot_displacement(23.5)
+            # plotter.save(f"testfiles/stair_plot/test_disp_{i}.png")
+
+            # plotter = StairCalculationSheetPNGPlotter(sp)
+            # plotter.plot_calculate_rebar_area([100, 200, 300, 400, 500, 600])
+            # plotter.save(f"testfiles/stair_plot/test_calrebar_{i}.png")
+
             i += 1

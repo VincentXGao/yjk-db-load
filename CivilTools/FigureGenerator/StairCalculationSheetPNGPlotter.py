@@ -156,6 +156,66 @@ class StairCalculationSheetPNGPlotter:
             self.plotter.draw_line(end_x - self.extend, end_y + 200, end_x, end_y)
         self.__draw_label_and_title("塑性挠度线", "塑性挠度图(mm)")
 
+    def plot_calculate_rebar_area(
+        self,
+        rebar_areas_left: List[float],
+        rebar_areas_middle: List[float],
+        rebar_areas_right: List[float],
+    ):
+        x_offset_base = 180
+        x_offset_small = 80
+        x_offset_big = 350
+        if self.current_stair.stair_type == "AT":
+            self.__draw_rebar_area(
+                *self.position_AT2, rebar_areas_middle, x_offset_base
+            )
+        elif self.current_stair.stair_type == "BT":
+            self.__draw_rebar_area(*self.position_BT1, rebar_areas_left, x_offset_small)
+            self.__draw_rebar_area(*self.position_BT2, rebar_areas_middle, x_offset_big)
+        elif self.current_stair.stair_type == "CT":
+            self.__draw_rebar_area(*self.position_CT2, rebar_areas_middle, x_offset_big)
+            self.__draw_rebar_area(
+                *self.position_CT3, rebar_areas_right, x_offset_small
+            )
+        elif self.current_stair.stair_type == "DT":
+            self.__draw_rebar_area(*self.position_DT1, rebar_areas_left, x_offset_small)
+            self.__draw_rebar_area(*self.position_DT2, rebar_areas_middle, x_offset_big)
+            self.__draw_rebar_area(
+                *self.position_DT3, rebar_areas_right, x_offset_small
+            )
+        self.__draw_label_and_title(None, "计算配筋简图")
+
+    def plot_real_rebar(
+        self, rebar_left: List[str], rebar_middle: List[str], rebar_right: List[str]
+    ):
+        x_offset_base = 180
+        x_offset_small = 80
+        x_offset_big = 350
+        if self.current_stair.stair_type == "AT":
+            self.__draw_rebar_area(*self.position_AT2, rebar_middle, x_offset_base)
+        elif self.current_stair.stair_type == "BT":
+            self.__draw_rebar_area(*self.position_BT1, rebar_left, x_offset_small)
+            self.__draw_rebar_area(*self.position_BT2, rebar_middle, x_offset_big)
+        elif self.current_stair.stair_type == "CT":
+            self.__draw_rebar_area(*self.position_CT2, rebar_middle, x_offset_big)
+            self.__draw_rebar_area(*self.position_CT3, rebar_right, x_offset_small)
+        elif self.current_stair.stair_type == "DT":
+            self.__draw_rebar_area(*self.position_DT1, rebar_left, x_offset_small)
+            self.__draw_rebar_area(*self.position_DT2, rebar_middle, x_offset_big)
+            self.__draw_rebar_area(*self.position_DT3, rebar_right, x_offset_small)
+        self.__draw_label_and_title(None, "实际配筋简图")
+
+    def plot_crack(self, w_list):
+        if self.current_stair.stair_type == "AT":
+            self.__draw_rebar_area(*self.position_AT2, w_list)
+        elif self.current_stair.stair_type == "BT":
+            self.__draw_rebar_area(*self.position_BT2, w_list)
+        elif self.current_stair.stair_type == "CT":
+            self.__draw_rebar_area(*self.position_CT2, w_list)
+        elif self.current_stair.stair_type == "DT":
+            self.__draw_rebar_area(*self.position_DT2, w_list)
+        self.__draw_label_and_title(None, "裂缝图")
+
     def to_stream(self):
         return self.plotter.to_stream()
 
@@ -496,21 +556,33 @@ class StairCalculationSheetPNGPlotter:
         degree = math.atan2((y1 - y2), (x2 - x1))
         str_x = int(temp_x2)
         str_y = int(temp_y2)
-        self.plotter.draw_text(
-            str_x,
-            str_y,
-            f"{disp:.2f}",
-            100,
-            degree,
-            0,
-            180,
-        )
+        self.plotter.draw_text(str_x, str_y, f"{abs(disp):.2f}", 100, degree, 0, 180)
+
+    def __draw_rebar_area(self, x1, y1, x2, y2, rebar_areas, x_offset_base=180):
+        degree = math.atan2((y1 - y2), (x2 - x1))
+        x_list = [x1, (x1 + x2) / 2, x2]
+        y_list = [y1, (y1 + y2) / 2, y2]
+        for i in range(len(rebar_areas)):
+            temp_data = rebar_areas[i]
+            if not isinstance(temp_data, str) and temp_data <= 0:
+                continue
+            if isinstance(temp_data, str) and temp_data == "":
+                continue
+            x = x_list[i // 2]
+            y = y_list[i // 2]
+            x_offset = (1 - i // 2) * x_offset_base
+            y_offset = -180 if i % 2 == 0 else 180
+            text = f"{temp_data:.0f}" if not isinstance(temp_data, str) else temp_data
+            self.plotter.draw_text(
+                int(x), int(y), str(text), 100, degree, x_offset, y_offset
+            )
 
     def __draw_label_and_title(self, label: str, title: str):
         start_x = self.start_x
         end_y = self.end_y
-        self.plotter.draw_line(start_x, end_y + 500, start_x + 500, end_y + 500)
-        self.plotter.draw_text(start_x + 800, end_y + 500, label, 100, 0)
+        if label != None:
+            self.plotter.draw_line(start_x, end_y + 500, start_x + 500, end_y + 500)
+            self.plotter.draw_text(start_x + 800, end_y + 500, label, 100, 0)
         self.plotter.draw_text(2700, 3050, title, 130, 0)
         self.plotter.draw_line(2100, 3150, 3300, 3150)
         self.plotter.draw_line(2100, 3190, 3300, 3190, width=15)
